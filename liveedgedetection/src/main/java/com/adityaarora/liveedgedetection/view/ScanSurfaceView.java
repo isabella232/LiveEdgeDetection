@@ -56,6 +56,8 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     private Camera.Size previewSize;
     private boolean isCapturing = false;
 
+    private boolean fromFileSystem = false;
+
     public ScanSurfaceView(Context context, IScanner iScanner) {
         super(context);
         mSurfaceView = new SurfaceView(context);
@@ -70,14 +72,20 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        try {
-            requestLayout();
-            openCamera();
-            this.camera.setPreviewDisplay(holder);
-            setPreviewCallback();
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
+        if (!fromFileSystem) {
+            try {
+                requestLayout();
+                openCamera();
+                this.camera.setPreviewDisplay(holder);
+                setPreviewCallback();
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage(), e);
+            }
         }
+    }
+
+    public void setFromFilesystem(boolean value) {
+        fromFileSystem = value;
     }
 
     public void clearAndInvalidateCanvas() {
@@ -113,6 +121,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        if (fromFileSystem) return;
         if (vWidth == vHeight) {
             return;
         }

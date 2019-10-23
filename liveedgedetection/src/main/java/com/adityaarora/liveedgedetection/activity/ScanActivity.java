@@ -3,14 +3,17 @@ package com.adityaarora.liveedgedetection.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.app.FragmentManager;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -21,7 +24,9 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.webkit.MimeTypeMap;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -44,6 +49,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +64,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private static final String TAG = ScanActivity.class.getSimpleName();
 
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 101;
+    private static final int SELECTED_FILE_CODE = 102;
 
     private ViewGroup containerScan;
     private FrameLayout cameraPreviewLayout;
@@ -75,6 +82,9 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private View cropRejectBtn;
     private Bitmap copyBitmap;
     private FrameLayout cropLayout;
+
+    private ImageButton backBtn;
+    private ImageButton openFileBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +105,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         cropAcceptBtn = findViewById(R.id.crop_accept_btn);
         cropRejectBtn = findViewById(R.id.crop_reject_btn);
         cropLayout = findViewById(R.id.crop_layout);
+        openFileBtn = findViewById(R.id.open_file_btn);
+        openFileBtn.setOnClickListener(onlickListener);
 
         cropAcceptBtn.setOnClickListener(this);
         cropRejectBtn.setOnClickListener(new View.OnClickListener() {
@@ -107,6 +119,49 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             }
         });
         checkCameraPermissions();
+    }
+
+    private View.OnClickListener onlickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            mImageSurfaceView.setFromFilesystem(true);
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("*/*");
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            try {
+                startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), SELECTED_FILE_CODE);
+            }
+            catch (Exception ex) {
+                System.out.println("browseClick :"+ex);//android.content.ActivityNotFoundException ex
+            }
+        }
+    };
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == SELECTED_FILE_CODE && data != null) {
+            try {
+                Uri selectedFile = data.getData();
+                ContentResolver cR = getApplicationContext().getContentResolver();
+                MimeTypeMap mime = MimeTypeMap.getSingleton();
+                String type = mime.getExtensionFromMimeType(cR.getType(selectedFile));
+                if (type.equals("pdf")) {
+                    Log.d(TAG, "onActivityResult: type = PDF");
+                }
+                else {
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedFile);
+                    onPictureClicked(bitmap);
+                    displayHint(ScanHint.NO_MESSAGE);
+                }
+            }
+            catch (IOException e) {
+                Log.e(TAG, "onActivityResult: ", e);
+            }
+        }
+        else {
+            mImageSurfaceView.setFromFilesystem(false);
+        }
     }
 
     private void checkCameraPermissions() {
@@ -123,6 +178,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             }
         } else {
             if (!isPermissionNotGranted) {
+                Log.d(TAG, "checkCameraPermissions() called");
                 mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, this);
                 cameraPreviewLayout.addView(mImageSurfaceView);
             } else {
@@ -152,6 +208,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            Log.d(TAG, "run() called");
                             mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
                             cameraPreviewLayout.addView(mImageSurfaceView);
                         }
