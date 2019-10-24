@@ -509,8 +509,7 @@ public class ScanUtils {
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
-        return BitmapFactory.decodeFile(new File(path, imageName).getAbsolutePath(),
-                options);
+        return BitmapFactory.decodeFile(new File(path, imageName).getAbsolutePath(), options);
     }
 
     /*

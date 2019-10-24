@@ -174,13 +174,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private void checkCameraPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             isPermissionNotGranted = true;
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
-                Toast.makeText(this, "Enable camera permission from settings", Toast.LENGTH_SHORT).show();
-            }
-            else {
-                ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.CAMERA,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE }, MY_PERMISSIONS_REQUEST_CAMERA);
-            }
+            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.CAMERA,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE }, MY_PERMISSIONS_REQUEST_CAMERA);
         }
         else {
             if (!isPermissionNotGranted) {
@@ -346,7 +341,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             Point point3 = new Point(points.get(2).x, points.get(2).y);
             Point point4 = new Point(points.get(3).x, points.get(3).y);
             croppedBitmap = ScanUtils.enhanceReceipt(copyBitmap, point1, point2, point3, point4);
-        } else {
+        }
+        else {
             croppedBitmap = copyBitmap;
         }
 
@@ -356,7 +352,6 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     @Override
     public void onCompleted(String[] paths) {
         setResult(Activity.RESULT_OK, new Intent().putExtra(ScanConstants.SCANNED_RESULT, paths[1]));
-        System.gc();
         finish();
     }
 }
