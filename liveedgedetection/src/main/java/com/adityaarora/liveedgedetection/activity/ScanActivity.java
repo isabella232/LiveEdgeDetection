@@ -60,7 +60,7 @@ import static android.view.View.GONE;
 /**
  * This class initiates camera and detects edges on live view
  */
-public class ScanActivity extends AppCompatActivity implements IScanner, View.OnClickListener {
+public class ScanActivity extends AppCompatActivity implements IScanner, View.OnClickListener, ScanUtils.OnSaveListener {
     private static final String TAG = ScanActivity.class.getSimpleName();
 
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 101;
@@ -106,14 +106,17 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         cropRejectBtn = findViewById(R.id.crop_reject_btn);
         cropLayout = findViewById(R.id.crop_layout);
         openFileBtn = findViewById(R.id.open_file_btn);
-        openFileBtn.setOnClickListener(onlickListener);
+        openFileBtn.setOnClickListener(onClickListener);
+        backBtn = findViewById(R.id.back_btn);
+        backBtn.setOnClickListener(onClickListener);
 
         cropAcceptBtn.setOnClickListener(this);
         cropRejectBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     TransitionManager.beginDelayedTransition(containerScan);
+                }
                 cropLayout.setVisibility(View.GONE);
                 mImageSurfaceView.setPreviewCallback();
             }
@@ -121,18 +124,22 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         checkCameraPermissions();
     }
 
-    private View.OnClickListener onlickListener = new View.OnClickListener() {
+    private View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            mImageSurfaceView.setFromFilesystem(true);
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("*/*");
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            try {
-                startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), SELECTED_FILE_CODE);
+            if (view.getId() == R.id.open_file_btn) {
+                mImageSurfaceView.setFromFilesystem(true);
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("*/*");
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                try {
+                    startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), SELECTED_FILE_CODE);
+                } catch (Exception ex) {
+                    Log.e(TAG, "onClick: ", ex);
+                }
             }
-            catch (Exception ex) {
-                System.out.println("browseClick :"+ex);//android.content.ActivityNotFoundException ex
+            else if (view.getId() == R.id.back_btn) {
+                finish();
             }
         }
     };
@@ -165,18 +172,17 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     }
 
     private void checkCameraPermissions() {
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             isPermissionNotGranted = true;
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.CAMERA)) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
                 Toast.makeText(this, "Enable camera permission from settings", Toast.LENGTH_SHORT).show();
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.CAMERA},
-                        MY_PERMISSIONS_REQUEST_CAMERA);
             }
-        } else {
+            else {
+                ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.CAMERA,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE }, MY_PERMISSIONS_REQUEST_CAMERA);
+            }
+        }
+        else {
             if (!isPermissionNotGranted) {
                 Log.d(TAG, "checkCameraPermissions() called");
                 mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, this);
@@ -344,10 +350,12 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             croppedBitmap = copyBitmap;
         }
 
-        String path = ScanUtils.saveToInternalMemory(croppedBitmap, ScanConstants.IMAGE_DIR,
-                ScanConstants.IMAGE_NAME, ScanActivity.this, 90)[0];
-        setResult(Activity.RESULT_OK, new Intent().putExtra(ScanConstants.SCANNED_RESULT, path));
-        //bitmap.recycle();
+        ScanUtils.saveToInternalMemory(croppedBitmap, 90, this);
+    }
+
+    @Override
+    public void onCompleted(String[] paths) {
+        setResult(Activity.RESULT_OK, new Intent().putExtra(ScanConstants.SCANNED_RESULT, paths[1]));
         System.gc();
         finish();
     }

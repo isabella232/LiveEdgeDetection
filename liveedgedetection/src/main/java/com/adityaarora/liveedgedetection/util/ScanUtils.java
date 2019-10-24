@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.hardware.Camera;
+import android.os.AsyncTask;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -26,8 +27,11 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +39,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_DIR;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_NAME;
 import static org.opencv.core.CvType.CV_8UC1;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 import static org.opencv.imgproc.Imgproc.THRESH_OTSU;
@@ -44,6 +50,7 @@ import static org.opencv.imgproc.Imgproc.THRESH_OTSU;
  */
 
 public class ScanUtils {
+
     private static final String TAG = ScanUtils.class.getSimpleName();
 
     public static boolean compareFloats(double left, double right) {
@@ -419,23 +426,75 @@ public class ScanUtils {
         return output;
     }
 
-    public static String[] saveToInternalMemory(Bitmap bitmap, String mFileDirectory, String
-            mFileName, Context mContext, int mQuality) {
+    public static void saveToInternalMemory(Bitmap bitmap, int mQuality, OnSaveListener onSaveListener) {
+        String fileName = IMAGE_NAME + System.currentTimeMillis() / 1000 + ".png";
+        new SaveToSdcard(fileName, mQuality, onSaveListener).execute(bitmap);
+    }
 
-        String[] mReturnParams = new String[2];
-        File mDirectory = getBaseDirectoryFromPathString(mFileDirectory, mContext);
-        File mPath = new File(mDirectory, mFileName);
-        try {
-            FileOutputStream mFileOutputStream = new FileOutputStream(mPath);
-            //Compress method used on the Bitmap object to write  image to output stream
-            bitmap.compress(Bitmap.CompressFormat.JPEG, mQuality, mFileOutputStream);
-            mFileOutputStream.close();
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage(), e);
+    public static class SaveToSdcard extends AsyncTask<Bitmap, Integer, String[]> {
+
+        private String fileName;
+        private int quality;
+        private OnSaveListener onSaveListener;
+
+        SaveToSdcard(String mFileName, int mQuality, OnSaveListener onSaveListener) {
+            this.fileName = mFileName;
+            this.quality = mQuality;
+            this.onSaveListener = onSaveListener;
         }
-        mReturnParams[0] = mDirectory.getAbsolutePath();
-        mReturnParams[1] = mFileName;
-        return mReturnParams;
+
+        @Override
+        protected String[] doInBackground(Bitmap... bitmaps) {
+
+            String[] returnParams = new String[2];
+
+            try {
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                bitmaps[0].compress(Bitmap.CompressFormat.PNG, quality, bos);
+                byte[] bitmapdata = bos.toByteArray();
+                ByteArrayInputStream bis = new ByteArrayInputStream(bitmapdata);
+                File unisaluteFolder = new File(IMAGE_DIR);
+                if (!unisaluteFolder.exists()) {
+                    unisaluteFolder.mkdirs();
+                    unisaluteFolder.setReadable(true, false);
+                    unisaluteFolder.setWritable(true, false);
+                    unisaluteFolder.setExecutable(true, false);
+                }
+                FileOutputStream fos = new FileOutputStream(new File(unisaluteFolder.getPath(), fileName));
+                byte[] b = new byte[100*1024];
+                int j;
+
+                while (true) {
+                    if (!((j = bis.read(b)) != -1)) break;
+                    fos.write(b, 0, j);
+                }
+
+                fos.flush();
+                fos.getFD().sync();
+
+                fos.close();
+                bis.close();
+
+                returnParams[0] = unisaluteFolder.getAbsolutePath();
+                returnParams[1] = fileName;
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            return returnParams;
+        }
+
+        @Override
+        protected void onPostExecute(String[] strings) {
+            onSaveListener.onCompleted(strings);
+        }
+    }
+
+    /**
+     * Listener per avviso salvataggio terminato
+     */
+    public interface OnSaveListener {
+        void onCompleted(String[] strings);
     }
 
     private static File getBaseDirectoryFromPathString(String mPath, Context mContext) {

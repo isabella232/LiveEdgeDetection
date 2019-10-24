@@ -5,12 +5,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
 import com.adityaarora.liveedgedetection.activity.ScanActivity;
 import com.adityaarora.liveedgedetection.constants.ScanConstants;
 import com.adityaarora.liveedgedetection.util.ScanUtils;
+
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_DIR;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,18 +39,21 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, REQUEST_CODE);
     }
 
+    private static final String TAG = "MainActivity";
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE) {
             if(resultCode == Activity.RESULT_OK) {
                 if(null != data && null != data.getExtras()) {
-                    String filePath = data.getExtras().getString(ScanConstants.SCANNED_RESULT);
-                    Bitmap baseBitmap = ScanUtils.decodeBitmapFromFile(filePath, ScanConstants.IMAGE_NAME);
+                    String fileName = data.getExtras().getString(ScanConstants.SCANNED_RESULT);
+                    Bitmap baseBitmap = ScanUtils.decodeBitmapFromFile(IMAGE_DIR, fileName);
 //                    scannedImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
                     scannedImageView.setImageBitmap(baseBitmap);
                 }
-            } else if(resultCode == Activity.RESULT_CANCELED) {
+            }
+            else if(resultCode == Activity.RESULT_CANCELED) {
                 finish();
             }
         }
