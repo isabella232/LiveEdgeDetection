@@ -346,7 +346,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             croppedBitmap = copyBitmap;
         }
 
-        ScanUtils.saveToInternalMemory(croppedBitmap, 90, this);
+        ScanUtils.saveToInternalMemory(getApplicationContext(), croppedBitmap, 90, this);
     }
 
     @Override

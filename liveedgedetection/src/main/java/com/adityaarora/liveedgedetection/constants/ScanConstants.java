@@ -7,6 +7,6 @@ package com.adityaarora.liveedgedetection.constants;
 public class ScanConstants {
     public static final String SCANNED_RESULT = "scannedResult";
     public static final String IMAGE_NAME = "crop_";
-    public static final String IMAGE_DIR = "sdcard/Unisalute";
+    public static final String IMAGE_FOLDER = "/Unisalute";
     public static final int HIGHER_SAMPLING_THRESHOLD = 2200;
 }

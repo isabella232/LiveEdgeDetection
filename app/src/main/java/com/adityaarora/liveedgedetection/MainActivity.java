@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -12,7 +13,7 @@ import com.adityaarora.liveedgedetection.activity.ScanActivity;
 import com.adityaarora.liveedgedetection.constants.ScanConstants;
 import com.adityaarora.liveedgedetection.util.ScanUtils;
 
-import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_DIR;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_FOLDER;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,6 +32,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 //        startScan();
+
+        String[] paths = ScanUtils.getFilesList();
+        if (paths != null) {
+            for (String path : paths) {
+                Log.d(TAG, "onCreate: " + path);
+            }
+        }
     }
 
     private void startScan() {
@@ -47,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
             if(resultCode == Activity.RESULT_OK) {
                 if(null != data && null != data.getExtras()) {
                     String fileName = data.getExtras().getString(ScanConstants.SCANNED_RESULT);
-                    Bitmap baseBitmap = ScanUtils.decodeBitmapFromFile(IMAGE_DIR, fileName);
+                    Bitmap baseBitmap = ScanUtils.decodeBitmapFromFile(fileName);
 //                    scannedImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
                     scannedImageView.setImageBitmap(baseBitmap);
                 }

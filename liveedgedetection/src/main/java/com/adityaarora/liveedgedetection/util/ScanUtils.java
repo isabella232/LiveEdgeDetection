@@ -39,7 +39,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_DIR;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_FOLDER;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_NAME;
 import static org.opencv.core.CvType.CV_8UC1;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
@@ -426,18 +426,20 @@ public class ScanUtils {
         return output;
     }
 
-    public static void saveToInternalMemory(Bitmap bitmap, int mQuality, OnSaveListener onSaveListener) {
+    public static void saveToInternalMemory(Context context, Bitmap bitmap, int mQuality, OnSaveListener onSaveListener) {
         String fileName = IMAGE_NAME + System.currentTimeMillis() / 1000 + ".png";
-        new SaveToSdcard(fileName, mQuality, onSaveListener).execute(bitmap);
+        new SaveToSdcard(context, fileName, mQuality, onSaveListener).execute(bitmap);
     }
 
     public static class SaveToSdcard extends AsyncTask<Bitmap, Integer, String[]> {
 
+        private Context context;
         private String fileName;
         private int quality;
         private OnSaveListener onSaveListener;
 
-        SaveToSdcard(String mFileName, int mQuality, OnSaveListener onSaveListener) {
+        SaveToSdcard(Context context, String mFileName, int mQuality, OnSaveListener onSaveListener) {
+            this.context = context;
             this.fileName = mFileName;
             this.quality = mQuality;
             this.onSaveListener = onSaveListener;
@@ -453,7 +455,7 @@ public class ScanUtils {
                 bitmaps[0].compress(Bitmap.CompressFormat.PNG, quality, bos);
                 byte[] bitmapdata = bos.toByteArray();
                 ByteArrayInputStream bis = new ByteArrayInputStream(bitmapdata);
-                File unisaluteFolder = new File(IMAGE_DIR);
+                File unisaluteFolder = new File(context.getExternalFilesDir(null).getPath());
                 if (!unisaluteFolder.exists()) {
                     unisaluteFolder.mkdirs();
                     unisaluteFolder.setReadable(true, false);
@@ -476,7 +478,7 @@ public class ScanUtils {
                 bis.close();
 
                 returnParams[0] = unisaluteFolder.getAbsolutePath();
-                returnParams[1] = fileName;
+                returnParams[1] = context.getExternalFilesDir(null) + "/" + fileName;
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -497,7 +499,7 @@ public class ScanUtils {
      */
     public static String[] getFilesList() {
         String[] pathArray = null;
-        final File imagesFolder = new File(IMAGE_DIR);
+        final File imagesFolder = new File(IMAGE_FOLDER);
         if (imagesFolder.listFiles() != null) {
             File[] paths = imagesFolder.listFiles();
             pathArray = new String[paths.length];
@@ -522,12 +524,12 @@ public class ScanUtils {
         return mContextWrapper.getDir(mPath, Context.MODE_PRIVATE);
     }
 
-    public static Bitmap decodeBitmapFromFile(String path, String imageName) {
+    public static Bitmap decodeBitmapFromFile(String imageName) {
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
-        return BitmapFactory.decodeFile(new File(path, imageName).getAbsolutePath(), options);
+        return BitmapFactory.decodeFile(new File(imageName).getAbsolutePath(), options);
     }
 
     /*

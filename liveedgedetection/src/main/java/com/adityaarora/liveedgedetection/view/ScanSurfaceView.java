@@ -130,7 +130,8 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
         Camera.Parameters parameters = camera.getParameters();
         camera.setDisplayOrientation(ScanUtils.configureCameraAngle((Activity) context));
-        parameters.setPreviewSize(previewSize.width, previewSize.height);
+        // TODO trovare soluzione migliore. SetPreviewSize non è supportato da diversi device
+//        parameters.setPreviewSize(previewSize.width, previewSize.height);
         if (parameters.getSupportedFocusModes() != null
                 && parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
