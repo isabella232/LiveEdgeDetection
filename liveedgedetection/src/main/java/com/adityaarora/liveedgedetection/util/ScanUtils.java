@@ -3,12 +3,15 @@ package com.adityaarora.liveedgedetection.util;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.provider.OpenableColumns;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -27,11 +30,15 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.SyncFailedException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +48,8 @@ import java.util.Map;
 
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_FOLDER;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_NAME;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.PHOTO_QUALITY;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.SCHEME;
 import static org.opencv.core.CvType.CV_8UC1;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 import static org.opencv.imgproc.Imgproc.THRESH_OTSU;
@@ -426,22 +435,21 @@ public class ScanUtils {
         return output;
     }
 
-    public static void saveToInternalMemory(Context context, Bitmap bitmap, int mQuality, OnSaveListener onSaveListener) {
-        String fileName = IMAGE_NAME + System.currentTimeMillis() / 1000 + ".png";
-        new SaveToSdcard(context, fileName, mQuality, onSaveListener).execute(bitmap);
+    public static void saveToInternalMemory(Context context, Bitmap bitmap, OnSaveListener onSaveListener) {
+        new SaveToSdcard(context, onSaveListener).execute(bitmap);
+    }
+
+    public static void saveToInternalMemory(Context context, Uri uri, OnSaveListener onSaveListener) {
+        new SavePdfToSdcard(context, onSaveListener).execute(uri);
     }
 
     public static class SaveToSdcard extends AsyncTask<Bitmap, Integer, String[]> {
 
         private Context context;
-        private String fileName;
-        private int quality;
         private OnSaveListener onSaveListener;
 
-        SaveToSdcard(Context context, String mFileName, int mQuality, OnSaveListener onSaveListener) {
+        SaveToSdcard(Context context, OnSaveListener onSaveListener) {
             this.context = context;
-            this.fileName = mFileName;
-            this.quality = mQuality;
             this.onSaveListener = onSaveListener;
         }
 
@@ -449,10 +457,11 @@ public class ScanUtils {
         protected String[] doInBackground(Bitmap... bitmaps) {
 
             String[] returnParams = new String[2];
+            String fileName = IMAGE_NAME + System.currentTimeMillis() / 1000 + ".png";
 
             try {
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                bitmaps[0].compress(Bitmap.CompressFormat.PNG, quality, bos);
+                bitmaps[0].compress(Bitmap.CompressFormat.PNG, PHOTO_QUALITY, bos);
                 byte[] bitmapdata = bos.toByteArray();
                 ByteArrayInputStream bis = new ByteArrayInputStream(bitmapdata);
                 File unisaluteFolder = new File(context.getExternalFilesDir(null).getPath());
@@ -466,8 +475,7 @@ public class ScanUtils {
                 byte[] b = new byte[100*1024];
                 int j;
 
-                while (true) {
-                    if (!((j = bis.read(b)) != -1)) break;
+                while ((j = bis.read(b)) != -1) {
                     fos.write(b, 0, j);
                 }
 
@@ -490,6 +498,90 @@ public class ScanUtils {
         protected void onPostExecute(String[] strings) {
             onSaveListener.onCompleted(strings);
         }
+    }
+
+    public static class SavePdfToSdcard extends AsyncTask<Uri, Integer, String[]> {
+
+        private Context context;
+        private OnSaveListener onSaveListener;
+
+        SavePdfToSdcard(Context context, OnSaveListener onSaveListener) {
+            this.context = context;
+            this.onSaveListener = onSaveListener;
+        }
+
+        @Override
+        protected String[] doInBackground(Uri... uri) {
+
+            String[] returnParams = new String[2];
+            final String fileName = getFileName(context, uri[0]);
+
+            try {
+                InputStream inputStream =  context.getContentResolver().openInputStream(uri[0]);
+                BufferedInputStream bis = new BufferedInputStream(inputStream);
+                File unisaluteFolder = new File(context.getExternalFilesDir(null).getPath());
+                if (!unisaluteFolder.exists()) {
+                    unisaluteFolder.mkdirs();
+                    unisaluteFolder.setReadable(true, false);
+                    unisaluteFolder.setWritable(true, false);
+                    unisaluteFolder.setExecutable(true, false);
+                }
+                FileOutputStream fos = new FileOutputStream(new File(unisaluteFolder.getPath(), fileName));
+                byte[] b = new byte[100*1024];
+                int j;
+
+                while ((j = bis.read(b)) != -1) {
+                    fos.write(b, 0, j);
+                }
+
+                fos.flush();
+                fos.getFD().sync();
+
+                fos.close();
+                bis.close();
+
+                returnParams[0] = unisaluteFolder.getAbsolutePath();
+                returnParams[1] = context.getExternalFilesDir(null) + "/" + fileName;
+            }
+            catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            catch (SyncFailedException e) {
+                e.printStackTrace();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            return returnParams;
+        }
+
+        @Override
+        protected void onPostExecute(String[] strings) {
+            onSaveListener.onCompleted(strings);
+        }
+    }
+
+    public static String getFileName(Context context, Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals(SCHEME)) {
+            Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            }
+            finally {
+                cursor.close();
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
     }
 
     /**

@@ -49,6 +49,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,6 +57,7 @@ import java.util.Map;
 import java.util.Stack;
 
 import static android.view.View.GONE;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
 
 /**
  * This class initiates camera and detects edges on live view
@@ -153,8 +155,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 ContentResolver cR = getApplicationContext().getContentResolver();
                 MimeTypeMap mime = MimeTypeMap.getSingleton();
                 String type = mime.getExtensionFromMimeType(cR.getType(selectedFile));
-                if (type.equals("pdf")) {
-                    Log.d(TAG, "onActivityResult: type = PDF");
+                if (type.equals(PDF_EXT)) {
+                    ScanUtils.saveToInternalMemory(getApplicationContext(), selectedFile, this);
                 }
                 else {
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedFile);
@@ -346,7 +348,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             croppedBitmap = copyBitmap;
         }
 
-        ScanUtils.saveToInternalMemory(getApplicationContext(), croppedBitmap, 90, this);
+        ScanUtils.saveToInternalMemory(getApplicationContext(), croppedBitmap, this);
     }
 
     @Override
