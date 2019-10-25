@@ -13,7 +13,8 @@ import com.adityaarora.liveedgedetection.activity.ScanActivity;
 import com.adityaarora.liveedgedetection.constants.ScanConstants;
 import com.adityaarora.liveedgedetection.util.ScanUtils;
 
-import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_FOLDER;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,11 +54,20 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE) {
             if(resultCode == Activity.RESULT_OK) {
-                if(null != data && null != data.getExtras()) {
-                    String fileName = data.getExtras().getString(ScanConstants.SCANNED_RESULT);
-                    Bitmap baseBitmap = ScanUtils.decodeBitmapFromFile(fileName);
-//                    scannedImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    scannedImageView.setImageBitmap(baseBitmap);
+                if (null != data && null != data.getExtras()) {
+                    try {
+                        JSONObject json = new JSONObject();
+
+                        String pathFile = data.getExtras().getString(ScanConstants.PATH_RESULT);
+                        String typeFile = data.getExtras().getString(ScanConstants.TYPE_RESULT);
+                        json.put("path", pathFile);
+                        json.put("type", typeFile);
+                        Bitmap baseBitmap = ScanUtils.decodeBitmapFromFile(pathFile);
+                        scannedImageView.setImageBitmap(baseBitmap);
+                    }
+                    catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
             else if(resultCode == Activity.RESULT_CANCELED) {
