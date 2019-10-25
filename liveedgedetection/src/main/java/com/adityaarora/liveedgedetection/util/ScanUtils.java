@@ -491,6 +491,24 @@ public class ScanUtils {
     }
 
     /**
+     * Restituisce la lista dei paths delle immagini memorizzate nella cartella quando sono richiesti dall'app Ionic
+     *
+     * @return pathArray
+     */
+    public static String[] getFilesList() {
+        String[] pathArray = null;
+        final File imagesFolder = new File(IMAGE_DIR);
+        if (imagesFolder.listFiles() != null) {
+            File[] paths = imagesFolder.listFiles();
+            pathArray = new String[paths.length];
+            for (int i = 0; i < paths.length; i++) {
+                pathArray[i] = paths[i].getPath();
+            }
+        }
+        return pathArray;
+    }
+
+    /**
      * Listener per avviso salvataggio terminato
      */
     public interface OnSaveListener {
