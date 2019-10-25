@@ -49,7 +49,6 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -353,7 +352,9 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
     @Override
     public void onCompleted(String[] paths) {
-        setResult(Activity.RESULT_OK, new Intent().putExtra(ScanConstants.SCANNED_RESULT, paths[1]));
+        setResult(Activity.RESULT_OK, new Intent()
+                .putExtra(ScanConstants.PATH_RESULT, paths[1])
+                .putExtra(ScanConstants.TYPE_RESULT, paths[2]));
         finish();
     }
 }

@@ -456,7 +456,7 @@ public class ScanUtils {
         @Override
         protected String[] doInBackground(Bitmap... bitmaps) {
 
-            String[] returnParams = new String[2];
+            String[] returnParams = new String[3];
             String fileName = IMAGE_NAME + System.currentTimeMillis() / 1000 + ".png";
 
             try {
@@ -487,6 +487,7 @@ public class ScanUtils {
 
                 returnParams[0] = unisaluteFolder.getAbsolutePath();
                 returnParams[1] = context.getExternalFilesDir(null) + "/" + fileName;
+                returnParams[2] = "img";
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -513,7 +514,7 @@ public class ScanUtils {
         @Override
         protected String[] doInBackground(Uri... uri) {
 
-            String[] returnParams = new String[2];
+            String[] returnParams = new String[3];
             final String fileName = getFileName(context, uri[0]);
 
             try {
@@ -542,6 +543,7 @@ public class ScanUtils {
 
                 returnParams[0] = unisaluteFolder.getAbsolutePath();
                 returnParams[1] = context.getExternalFilesDir(null) + "/" + fileName;
+                returnParams[2] = "pdf";
             }
             catch (FileNotFoundException e) {
                 e.printStackTrace();
