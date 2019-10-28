@@ -1,5 +1,5 @@
 <resources>
-    <string name="camera_activity_permission_denied_toast">Per favore, concedi i permessi alla fotocamera</string>
+    <string name="camera_activity_permission_denied_toast">Per favore, concedi i permessi all'applicazione</string>
 
     <string name="finding_rect">Usa uno sfondo più scuro</string>
     <string name="move_away">Allontanati</string>

@@ -64,7 +64,7 @@ import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
 public class ScanActivity extends AppCompatActivity implements IScanner, View.OnClickListener, ScanUtils.OnSaveListener {
     private static final String TAG = ScanActivity.class.getSimpleName();
 
-    private static final int MY_PERMISSIONS_REQUEST_CAMERA = 101;
+    private static final int MY_PERMISSIONS_REQUEST = 101;
     private static final int SELECTED_FILE_CODE = 102;
 
     private ViewGroup containerScan;
@@ -180,17 +180,19 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     }
 
     private void checkCameraPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+            || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             isPermissionNotGranted = true;
             ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.CAMERA,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE }, MY_PERMISSIONS_REQUEST_CAMERA);
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE }, MY_PERMISSIONS_REQUEST);
         }
         else {
             if (!isPermissionNotGranted) {
                 Log.d(TAG, "checkCameraPermissions() called");
                 mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, this);
                 cameraPreviewLayout.addView(mImageSurfaceView);
-            } else {
+            }
+            else {
                 isPermissionNotGranted = false;
             }
         }
@@ -199,7 +201,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_CAMERA:
+            case MY_PERMISSIONS_REQUEST:
                 onRequestCamera(grantResults);
                 break;
             default:
@@ -208,8 +210,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     }
 
     private void onRequestCamera(int[] grantResults) {
-        if (grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -224,7 +225,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 }
             }, 500);
 
-        } else {
+        }
+        else {
             Toast.makeText(this, getString(R.string.camera_activity_permission_denied_toast), Toast.LENGTH_SHORT).show();
             this.finish();
         }
