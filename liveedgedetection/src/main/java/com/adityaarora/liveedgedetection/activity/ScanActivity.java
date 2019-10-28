@@ -138,6 +138,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 mImageSurfaceView.setFromFilesystem(true);
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("*/*");
+                String[] mimetypes = {"image/*", "application/pdf"};
+                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimetypes);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 try {
                     startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), SELECTED_FILE_CODE);
