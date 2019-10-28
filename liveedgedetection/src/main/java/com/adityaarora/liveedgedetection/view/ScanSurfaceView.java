@@ -84,6 +84,10 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         }
     }
 
+    public boolean getFromFilesystem() {
+        return fromFileSystem;
+    }
+
     public void setFromFilesystem(boolean value) {
         fromFileSystem = value;
     }
@@ -147,6 +151,10 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         camera.setParameters(parameters);
         requestLayout();
         setPreviewCallback();
+    }
+
+    public void surfaceDestroyed() {
+        stopPreviewAndFreeCamera();
     }
 
     @Override

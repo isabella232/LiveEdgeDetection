@@ -119,7 +119,13 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                     TransitionManager.beginDelayedTransition(containerScan);
                 }
                 cropLayout.setVisibility(View.GONE);
-                mImageSurfaceView.setPreviewCallback();
+                if (mImageSurfaceView.getFromFilesystem()) {
+                    mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
+                    cameraPreviewLayout.addView(mImageSurfaceView);
+                }
+                else {
+                    mImageSurfaceView.setPreviewCallback();
+                }
             }
         });
         checkCameraPermissions();
@@ -149,6 +155,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == SELECTED_FILE_CODE && data != null) {
+            mImageSurfaceView.surfaceDestroyed();
             try {
                 Uri selectedFile = data.getData();
                 ContentResolver cR = getApplicationContext().getContentResolver();
