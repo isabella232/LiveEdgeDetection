@@ -1,0 +1,32 @@
+
+\squid:S2259Ü"DA "NullPointerException" could be thrown; "cursor" is nullable here.(®¶ëü
+ksquid:S2095ö"NUse try-with-resources or close this "FileOutputStream" in a "finally" clause.(ªİ­ûıÿÿÿÿ
+Rsquid:S1133»"5Do not forget to remove this deprecated code someday.(¯”Š¯øÿÿÿÿ
+@squid:S1148Á"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ
+^
+squid:S899ô"BDo something with the "boolean" value returned by "setExecutable".(§¢†£ûÿÿÿÿ
+\
+squid:S899ª"@Do something with the "boolean" value returned by "setReadable".(à€˜Àıÿÿÿÿ
+\
+squid:S899ò"@Do something with the "boolean" value returned by "setReadable".(à€˜Àıÿÿÿÿ
+isquid:UnusedPrivateMethod‚"CRemove this unused private "getBaseDirectoryFromPathString" method.(ŞœÀæ
+Csquid:S1168•"+Return an empty collection instead of null.(¥¹ï
+osquid:S3776£"RRefactor this method to reduce its Cognitive Complexity from 28 to the 15 allowed.(ªüõşÿÿÿÿ
+Q"squid:SwitchLastCaseIsDefaultCheckŠ""Add a default case to this switch.(¾¤Ÿå
+squid:S1319Š"pThe return type of this method should be an interface such as "List" rather than the implementation "ArrayList".(›Æâ÷şÿÿÿÿ
+^
+squid:S899¬"BDo something with the "boolean" value returned by "setExecutable".(§¢†£ûÿÿÿÿ
+\
+squid:S899ó"@Do something with the "boolean" value returned by "setWritable".(÷Û€„øÿÿÿÿ
+fsquid:S2259‹"IA "NullPointerException" could be thrown; "optimalSize" is nullable here.(‹ÜÿÄıÿÿÿÿ
+ksquid:S2095®"NUse try-with-resources or close this "FileOutputStream" in a "finally" clause.(ªİ­ûıÿÿÿÿ
+@squid:S1148Ç"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ
+Vsquid:MissingDeprecatedCheck»"(Add the missing @deprecated Javadoc tag.(¯”Š¯øÿÿÿÿ
+[squid:S1155Œ">Use isEmpty() to check whether the collection is empty or not.(ùØôşÿÿÿÿ
+@squid:S1148Ä"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ
+?squid:S1659X"(Declare "deltaRatio" on a separate line.(ÆŞÂ
+@squid:S1148‰"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ
+bsquid:S2147Ã"ECombine this catch with the one at line 576, which has the same body.(œëã¤ùÿÿÿÿ
+bsquid:S2147Æ"ECombine this catch with the one at line 576, which has the same body.(©œ¡ÿÿÿÿÿ
+\
+squid:S899«"@Do something with the "boolean" value returned by "setWritable".(÷Û€„øÿÿÿÿ

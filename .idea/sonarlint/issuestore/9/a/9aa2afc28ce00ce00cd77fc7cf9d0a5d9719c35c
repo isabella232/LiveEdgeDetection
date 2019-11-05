@@ -1,0 +1,20 @@
+
+Nsquid:S1153®"1Directly append the argument of String.valueOf().(åã¨ãùÿÿÿÿ
+@squid:S1148Þ"#Use a logger to log this exception.(€ÉÔ…ýÿÿÿÿ
+hsquid:S1301Â"KReplace this "switch" statement by "if" statements to increase readability.(×À½åüÿÿÿÿ
+Wsquid:S3398ì"?Move this method into the anonymous class declared at line 184.(¦ðÝ‡
+Isquid:S1135‰"2Complete the task associated to this TODO comment.(Ì—¦
+Isquid:S1153€"1Directly append the argument of String.valueOf().(™Û‰Ô
+dsquid:S1192ë"GDefine a constant instead of duplicating this literal "layout" 4 times.(º´Û…úÿÿÿÿ
+‡"squid:SwitchLastCaseIsDefaultCheckõ"YComplete cases by adding the missing enum constants or add a default case to this switch.(³±·Q
+csquid:CommentedOutCodeLineŠ"<This block of commented-out lines of code should be removed.(öŽÀ‰
+]squid:S2184â"@Cast one of the operands of this integer division to a "double".(ƒ“Ö”þÿÿÿÿ
+csquid:CommentedOutCodeLineÛ"<This block of commented-out lines of code should be removed.(ËÃØ¡
+Nsquid:S1153â"1Directly append the argument of String.valueOf().(†¶‘«øÿÿÿÿ
+Nsquid:S1153ã"1Directly append the argument of String.valueOf().(Â·ËÞûÿÿÿÿ
+jsquid:S1871•"MThis branch's code block is the same as the block for the branch on line 274.(†Õ†¾úÿÿÿÿ
+Wsquid:S3398Ü"?Move this method into the anonymous class declared at line 184.(çÝû
+Nsquid:S1153í"1Directly append the argument of String.valueOf().(¢ðò†ýÿÿÿÿ
+Nsquid:S1153ÿ"1Directly append the argument of String.valueOf().(‰Ñ®üÿÿÿÿ
+]squid:S2184Û"@Cast one of the operands of this integer division to a "double".(‘øÈþÿÿÿÿ
+jsquid:S3776Ü"RRefactor this method to reduce its Cognitive Complexity from 18 to the 15 allowed.(çÝû
