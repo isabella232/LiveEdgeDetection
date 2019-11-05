@@ -180,10 +180,12 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         this.camera.setPreviewCallback(previewCallback);
     }
 
+    long lastCall = 0;
     private final Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
-            if (null != camera) {
+            if (null != camera && (System.currentTimeMillis() - lastCall) > 1000) {
+                lastCall = System.currentTimeMillis();
                 try {
                     Camera.Size pictureSize = camera.getParameters().getPreviewSize();
                     Log.d(TAG, "onPreviewFrame - received image " + pictureSize.width + "x" + pictureSize.height);

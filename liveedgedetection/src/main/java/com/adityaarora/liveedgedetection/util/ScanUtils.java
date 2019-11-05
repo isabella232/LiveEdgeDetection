@@ -21,6 +21,7 @@ import android.view.Surface;
 import com.adityaarora.liveedgedetection.view.Quadrilateral;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -52,6 +53,7 @@ import static com.adityaarora.liveedgedetection.constants.ScanConstants.PHOTO_QU
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SCHEME;
 import static org.opencv.core.CvType.CV_8UC1;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
+import static org.opencv.imgproc.Imgproc.THRESH_BINARY_INV;
 import static org.opencv.imgproc.Imgproc.THRESH_OTSU;
 
 /**
@@ -294,10 +296,36 @@ public class ScanUtils {
 
     public static Quadrilateral detectLargestQuadrilateral(Mat mat) {
         Mat mGrayMat = new Mat(mat.rows(), mat.cols(), CV_8UC1);
-        Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2GRAY, 4);
-        Imgproc.threshold(mGrayMat, mGrayMat, 150, 255, THRESH_BINARY + THRESH_OTSU);
+        Mat dst = new Mat(mat.rows(), mat.cols(), CV_8UC1);
 
-        List<MatOfPoint> largestContour = findLargestContour(mGrayMat);
+        double[] colorsCenter = mat.get(mat.height() / 2, mat.width() / 2);
+        double avgCenter = (colorsCenter[0] + colorsCenter[1] + colorsCenter[2]) / 3;
+
+        double[] colorsCorner = mat.get(5, 5);
+        double avgCorner = (colorsCorner[0] + colorsCorner[1] + colorsCorner[2]) / 3;
+
+        if (avgCorner >= 155) {
+            // Sfondo chiaro
+            Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2HSV, 4);
+            List<Mat> mats = new ArrayList<>();
+            Core.split(mGrayMat, mats);
+            mGrayMat = mats.get(1);
+            if (avgCenter >= 150) {
+                Imgproc.medianBlur(mGrayMat, mGrayMat, 11);
+                Imgproc.threshold(mGrayMat, dst, 5, 255, THRESH_BINARY_INV);
+            }
+            else {
+                Imgproc.medianBlur(mGrayMat, mGrayMat, 11);
+                Imgproc.threshold(mGrayMat, dst, 5, 255, THRESH_BINARY + THRESH_OTSU);
+            }
+        }
+        else {
+            // Sfondo scuro
+            Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2GRAY, 4);
+            Imgproc.threshold(mGrayMat, dst, 150, 255, THRESH_BINARY + THRESH_OTSU);
+        }
+
+        List<MatOfPoint> largestContour = findLargestContour(dst);
         if (null != largestContour) {
             Quadrilateral mLargestRect = findQuadrilateral(largestContour);
             if (mLargestRect != null)
