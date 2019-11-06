@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -57,6 +58,9 @@ import java.util.Stack;
 
 import static android.view.View.GONE;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
+import static com.adityaarora.liveedgedetection.enums.ScanHint.CAPTURING_IMAGE;
+import static com.adityaarora.liveedgedetection.enums.ScanHint.MANUAL_MODE;
+import static com.adityaarora.liveedgedetection.enums.ScanHint.NO_MESSAGE;
 
 /**
  * This class initiates camera and detects edges on live view
@@ -86,6 +90,10 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
     private ImageButton backBtn;
     private ImageButton openFileBtn;
+    private ImageButton captureBtn;
+    private View limitedArea;
+
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +118,9 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         openFileBtn.setOnClickListener(onClickListener);
         backBtn = findViewById(R.id.back_btn);
         backBtn.setOnClickListener(onClickListener);
+        captureBtn = findViewById(R.id.capture_btn);
+        captureBtn.setOnClickListener(onClickListener);
+        limitedArea = findViewById(R.id.limited_area);
 
         cropAcceptBtn.setOnClickListener(this);
         cropRejectBtn.setOnClickListener(new View.OnClickListener() {
@@ -118,6 +129,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     TransitionManager.beginDelayedTransition(containerScan);
                 }
+                goneManualMode();
                 cropLayout.setVisibility(View.GONE);
                 if (mImageSurfaceView.getFromFilesystem()) {
                     mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
@@ -129,6 +141,30 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             }
         });
         checkCameraPermissions();
+        goneManualMode();
+    }
+
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            mImageSurfaceView.setManualMode(true);
+            captureBtn.setVisibility(View.VISIBLE);
+            limitedArea.setVisibility(View.VISIBLE);
+            displayHint(MANUAL_MODE);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    displayHint(NO_MESSAGE);
+                }
+            }, 2000);
+        }
+    };
+
+    private void goneManualMode() {
+        mImageSurfaceView.setManualMode(false);
+        captureBtn.setVisibility(View.GONE);
+        limitedArea.setVisibility(View.GONE);
+        handler.postDelayed(runnable, 10000);
     }
 
     private View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -150,6 +186,9 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             else if (view.getId() == R.id.back_btn) {
                 finish();
             }
+            else if (view.getId() == R.id.capture_btn) {
+                mImageSurfaceView.autoCapture(CAPTURING_IMAGE);
+            }
         }
     };
 
@@ -169,7 +208,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 else {
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedFile);
                     onPictureClicked(bitmap);
-                    displayHint(ScanHint.NO_MESSAGE);
+                    displayHint(NO_MESSAGE);
                 }
             }
             catch (IOException e) {
@@ -258,6 +297,10 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 captureHintText.setText(getResources().getString(R.string.hold_still));
                 captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_green));
                 break;
+            case MANUAL_MODE:
+                captureHintText.setText(getResources().getString(R.string.manual_mode));
+                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_green));
+                break;
             case NO_MESSAGE:
                 captureHintLayout.setVisibility(GONE);
                 break;
@@ -268,6 +311,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
     @Override
     public void onPictureClicked(final Bitmap bitmap) {
+        handler.removeCallbacks(runnable);
         try {
             copyBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
 

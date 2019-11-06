@@ -9,5 +9,6 @@ public enum ScanHint {
     FIND_RECT,
     ADJUST_ANGLE,
     CAPTURING_IMAGE,
+    MANUAL_MODE,
     NO_MESSAGE
 }

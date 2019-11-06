@@ -33,6 +33,7 @@ import org.opencv.imgproc.Imgproc;
 import java.io.IOException;
 import java.util.List;
 
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.INTERVAL_FRAME;
 import static org.opencv.core.CvType.CV_8UC1;
 
 /**
@@ -57,6 +58,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     private boolean isCapturing = false;
 
     private boolean fromFileSystem = false;
+    private boolean manualMode = false;
 
     public ScanSurfaceView(Context context, IScanner iScanner) {
         super(context);
@@ -184,31 +186,33 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     private final Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
-            if (null != camera && (System.currentTimeMillis() - lastCall) > 1000) {
+            if (null != camera && (System.currentTimeMillis() - lastCall) > INTERVAL_FRAME) {
                 lastCall = System.currentTimeMillis();
                 try {
                     Camera.Size pictureSize = camera.getParameters().getPreviewSize();
                     Log.d(TAG, "onPreviewFrame - received image " + pictureSize.width + "x" + pictureSize.height);
 
-                    Mat yuv = new Mat(new Size(pictureSize.width, pictureSize.height * 1.5), CV_8UC1);
-                    yuv.put(0, 0, data);
+                    if (!manualMode) {
+                        Mat yuv = new Mat(new Size(pictureSize.width, pictureSize.height * 1.5), CV_8UC1);
+                        yuv.put(0, 0, data);
 
-                    Mat mat = new Mat(new Size(pictureSize.width, pictureSize.height), CvType.CV_8UC4);
-                    Imgproc.cvtColor(yuv, mat, Imgproc.COLOR_YUV2BGR_NV21, 4);
-                    yuv.release();
+                        Mat mat = new Mat(new Size(pictureSize.width, pictureSize.height), CvType.CV_8UC4);
+                        Imgproc.cvtColor(yuv, mat, Imgproc.COLOR_YUV2BGR_NV21, 4);
+                        yuv.release();
 
-                    Size originalPreviewSize = mat.size();
-                    int originalPreviewArea = mat.rows() * mat.cols();
+                        Size originalPreviewSize = mat.size();
+                        int originalPreviewArea = mat.rows() * mat.cols();
 
-                    Quadrilateral largestQuad = ScanUtils.detectLargestQuadrilateral(mat);
-                    clearAndInvalidateCanvas();
+                        Quadrilateral largestQuad = ScanUtils.detectLargestQuadrilateral(mat);
+                        clearAndInvalidateCanvas();
 
-                    mat.release();
+                        mat.release();
 
-                    if (null != largestQuad) {
-                        drawLargestRect(largestQuad.contour, largestQuad.points, originalPreviewSize, originalPreviewArea);
-                    } else {
-                        showFindingReceiptHint();
+                        if (null != largestQuad) {
+                            drawLargestRect(largestQuad.contour, largestQuad.points, originalPreviewSize, originalPreviewArea);
+                        } else {
+                            showFindingReceiptHint();
+                        }
                     }
                 } catch (Exception e) {
                     showFindingReceiptHint();
@@ -335,7 +339,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         autoCaptureTimer.start();
     }
 
-    private void autoCapture(ScanHint scanHint) {
+    public void autoCapture(ScanHint scanHint) {
         if (isCapturing) return;
         if (ScanHint.CAPTURING_IMAGE.equals(scanHint)) {
             try {
@@ -493,5 +497,12 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
             Log.d("layout", "right:" + nW);
             Log.d("layout", "bottom:" + nH);
         }
+    }
+
+    public void setManualMode(boolean manualMode) {
+        this.manualMode = manualMode;
+        scanCanvasView.clear();
+        invalidateCanvas();
+        iScanner.displayHint(ScanHint.NO_MESSAGE);
     }
 }

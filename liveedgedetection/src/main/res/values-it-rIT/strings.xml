@@ -1,10 +1,13 @@
 <resources>
     <string name="camera_activity_permission_denied_toast">Per favore, concedi i permessi all\'applicazione</string>
 
-    <string name="finding_rect">Usa uno sfondo più scuro</string>
+<!--    <string name="finding_rect">Usa uno sfondo più scuro</string>-->
+    <string name="finding_rect">Inquadra documento</string>
+    <string name="frame_document">Inquadra documento</string>
     <string name="move_away">Allontanati</string>
     <string name="move_closer">Avvicinati</string>
     <string name="adjust_angle">Aggiusta angolo</string>
     <string name="hold_still">Tenere fermo</string>
+    <string name="manual_mode">Modalità manuale attivata</string>
     <string name="capturing">Cattura immagine..</string>
 </resources>

@@ -51,6 +51,7 @@ import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_FO
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_NAME;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PHOTO_QUALITY;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SCHEME;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.THRESHOLD;
 import static org.opencv.core.CvType.CV_8UC1;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY_INV;
@@ -294,27 +295,45 @@ public class ScanUtils {
         return angle;
     }
 
+    private static double getAvgCorner(Mat mat) {
+        Mat tmp = new Mat(mat.rows(), mat.cols(), CV_8UC1);
+        Imgproc.cvtColor(mat, tmp, Imgproc.COLOR_BGR2HSV, 4);
+        float k = 0.7f;
+        double[] previous = new double[3];
+        for (int i = 0; i < mat.width(); i++) {
+            double[] colors = mat.get(0, i);
+            if (i == 0) {
+                previous = colors;
+            }
+            else {
+                previous[1] = k * colors[1] + (1 - k) * previous[1];
+            }
+        }
+        tmp.release();
+        return previous[1];
+    }
+
     public static Quadrilateral detectLargestQuadrilateral(Mat mat) {
         Mat mGrayMat = new Mat(mat.rows(), mat.cols(), CV_8UC1);
         Mat dst = new Mat(mat.rows(), mat.cols(), CV_8UC1);
 
         double[] colorsCenter = mat.get(mat.height() / 2, mat.width() / 2);
         double avgCenter = (colorsCenter[0] + colorsCenter[1] + colorsCenter[2]) / 3;
+        double avgCorner = getAvgCorner(mat);
 
-        double[] colorsCorner = mat.get(5, 5);
-        double avgCorner = (colorsCorner[0] + colorsCorner[1] + colorsCorner[2]) / 3;
-
-        if (avgCorner >= 155) {
+        if (avgCorner >= THRESHOLD) {
             // Sfondo chiaro
             Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2HSV, 4);
             List<Mat> mats = new ArrayList<>();
             Core.split(mGrayMat, mats);
             mGrayMat = mats.get(1);
-            if (avgCenter >= 150) {
+            if (avgCenter >= THRESHOLD) {
+                // Documento bianco su sfondo bianco
                 Imgproc.medianBlur(mGrayMat, mGrayMat, 11);
                 Imgproc.threshold(mGrayMat, dst, 5, 255, THRESH_BINARY_INV);
             }
             else {
+                // Documento più scuro dello sfondo
                 Imgproc.medianBlur(mGrayMat, mGrayMat, 11);
                 Imgproc.threshold(mGrayMat, dst, 5, 255, THRESH_BINARY + THRESH_OTSU);
             }
@@ -328,8 +347,11 @@ public class ScanUtils {
         List<MatOfPoint> largestContour = findLargestContour(dst);
         if (null != largestContour) {
             Quadrilateral mLargestRect = findQuadrilateral(largestContour);
-            if (mLargestRect != null)
+            if (mLargestRect != null) {
+                mGrayMat.release();
+                dst.release();
                 return mLargestRect;
+            }
         }
         return null;
     }
