@@ -161,10 +161,12 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     };
 
     private void goneManualMode() {
-        mImageSurfaceView.setManualMode(false);
-        captureBtn.setVisibility(View.GONE);
-        limitedArea.setVisibility(View.GONE);
-        handler.postDelayed(runnable, 10000);
+        if (mImageSurfaceView != null) {
+            mImageSurfaceView.setManualMode(false);
+            captureBtn.setVisibility(View.GONE);
+            limitedArea.setVisibility(View.GONE);
+            handler.postDelayed(runnable, 10000);
+        }
     }
 
     private View.OnClickListener onClickListener = new View.OnClickListener() {
