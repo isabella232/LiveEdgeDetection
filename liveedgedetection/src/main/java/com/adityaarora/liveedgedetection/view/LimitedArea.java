@@ -18,8 +18,8 @@ public class LimitedArea extends View {
     private Paint paint;
     private Path path;
     private int width, height;
-    Canvas canvas;
     private Rect rectangle;
+    Canvas canvas;
 
     public LimitedArea(Context context) {
         super(context);
@@ -61,8 +61,8 @@ public class LimitedArea extends View {
     private void drawRectSample() {
         int x = width / 6;
         int y = height / 4;
-        int widthLength = x*5;
-        int heightLenght = y* 3;
+        int widthLength = x * 5;
+        int heightLenght = y * 3;
         Paint paint = new Paint();
         // create a rectangle that we'll draw later
         rectangle = new Rect(x, y, widthLength, heightLenght);
@@ -127,12 +127,23 @@ public class LimitedArea extends View {
         path = new Path();
         int x = width / 6;
         int y = height / 4;
-        int widthLength = x*5;
-        int heightLenght = y* 3;
+        int widthLength = x * 5;
+        int heightLenght = y * 3;
         RectF rect = new RectF(x, y, widthLength, heightLenght);
         path.addRect(rect,Path.Direction.CW);
         path.setFillType(Path.FillType.INVERSE_EVEN_ODD);
         canvas.clipPath(path);
         canvas.drawColor(getResources().getColor(R.color.green_limited_area));
+    }
+
+    public Rect getRect() {
+        return rectangle;
+    }
+
+    @Override
+    public String toString() {
+        return "LimitedArea{" +
+                "rectangle=" + rectangle +
+                '}';
     }
 }

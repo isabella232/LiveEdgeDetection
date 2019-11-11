@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -19,6 +20,7 @@ import android.view.Display;
 import android.view.Surface;
 
 import com.adityaarora.liveedgedetection.interfaces.IScanner;
+import com.adityaarora.liveedgedetection.view.LimitedArea;
 import com.adityaarora.liveedgedetection.view.Quadrilateral;
 
 import org.opencv.android.Utils;
@@ -317,41 +319,36 @@ public class ScanUtils {
     private static int threshold = 0;
     private static int tentative = 0;
 
-    public static Quadrilateral detectLargestQuadrilateral(Mat mat, IScanner iScanner) {
+    public static Quadrilateral detectLargestQuadrilateral(Mat mat) {
         Mat mGrayMat = new Mat(mat.rows(), mat.cols(), CV_8UC1);
         Mat dst = new Mat(mat.rows(), mat.cols(), CV_8UC1);
 
-        double[] colorsCenter = mat.get(mat.height() / 2, mat.width() / 2);
-        double avgCenter = (colorsCenter[0] + colorsCenter[1] + colorsCenter[2]) / 3;
-        double avgCorner = getAvgCorner(mat);
+//        double[] colorsCenter = mat.get(mat.height() / 2, mat.width() / 2);
+//        double avgCenter = (colorsCenter[0] + colorsCenter[1] + colorsCenter[2]) / 3;
+//        double avgCorner = getAvgCorner(mat);
 
-        Log.d(TAG, "detectLargestQuadrilateral: " + threshold);
+//        if (avgCorner >= THRESHOLD) {
+//            // Sfondo chiaro
+//            Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2HSV, 4);
+//            List<Mat> mats = new ArrayList<>();
+//            Core.split(mGrayMat, mats);
+//            mGrayMat = mats.get(1);
+////                Imgproc.medianBlur(mGrayMat, mGrayMat, 1);
+//            Imgproc.threshold(mGrayMat, dst, threshold, 255, THRESH_BINARY_INV);
+//        }
+//        else {
+//            // Sfondo scuro
+//            Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2GRAY, 4);
+//            Imgproc.threshold(mGrayMat, dst, 150, 255, THRESH_BINARY + THRESH_OTSU);
+//        }
+//        if (tentative > 2) {
+//            threshold++;
+//            tentative = 0;
+//        }
+//        tentative++;
 
-        if (avgCorner >= THRESHOLD) {
-            // Sfondo chiaro
-            Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2HSV, 4);
-            List<Mat> mats = new ArrayList<>();
-            Core.split(mGrayMat, mats);
-            mGrayMat = mats.get(1);
-//                Imgproc.medianBlur(mGrayMat, mGrayMat, 1);
-            Imgproc.threshold(mGrayMat, dst, threshold, 255, THRESH_BINARY_INV);
-        }
-
-        else {
-            // Sfondo scuro
-            Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2GRAY, 4);
-            Imgproc.threshold(mGrayMat, dst, 150, 255, THRESH_BINARY + THRESH_OTSU);
-        }
-        if (tentative > 2) {
-            threshold++;
-            tentative = 0;
-        }
-        tentative++;
-
-
-//        Bitmap bitmap = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888);
-//        Utils.matToBitmap(dst, bitmap);
-//        iScanner.onTestImage(bitmap);
+        Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2GRAY, 4);
+        Imgproc.threshold(mGrayMat, dst, 150, 255, THRESH_BINARY + THRESH_OTSU);
 
         List<MatOfPoint> largestContour = findLargestContour(dst);
         if (null != largestContour) {
@@ -813,6 +810,17 @@ public class ScanUtils {
         points.add(new PointF(bitmap.getWidth() * (0.84f), (float) bitmap.getHeight() * (0.13f)));
         points.add(new PointF(bitmap.getWidth() * (0.14f), (float) bitmap.getHeight() * (0.83f)));
         points.add(new PointF(bitmap.getWidth() * (0.84f), (float) bitmap.getHeight() * (0.83f)));
+        return points;
+    }
+
+    public static ArrayList<PointF> getPolygonFromLimitedArea(LimitedArea limitedArea) {
+        Rect rect = limitedArea.getRect();
+        ArrayList<PointF> points;
+        points = new ArrayList<>();
+        points.add(new PointF((float) rect.left, (float) rect.top));
+        points.add(new PointF((float) rect.right, (float) rect.top));
+        points.add(new PointF((float) rect.left, (float) rect.bottom));
+        points.add(new PointF((float) rect.right, (float) rect.bottom));
         return points;
     }
 

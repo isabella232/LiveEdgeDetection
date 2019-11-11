@@ -187,35 +187,35 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     private final Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
-            if (null != camera && (System.currentTimeMillis() - lastCall) > INTERVAL_FRAME) {
+            if (null != camera && !manualMode && (System.currentTimeMillis() - lastCall) > INTERVAL_FRAME) {
                 lastCall = System.currentTimeMillis();
                 try {
                     Camera.Size pictureSize = camera.getParameters().getPreviewSize();
                     Log.d(TAG, "onPreviewFrame - received image " + pictureSize.width + "x" + pictureSize.height);
 
-                    if (!manualMode) {
-                        Mat yuv = new Mat(new Size(pictureSize.width, pictureSize.height * 1.5), CV_8UC1);
-                        yuv.put(0, 0, data);
+                    Mat yuv = new Mat(new Size(pictureSize.width, pictureSize.height * 1.5), CV_8UC1);
+                    yuv.put(0, 0, data);
 
-                        Mat mat = new Mat(new Size(pictureSize.width, pictureSize.height), CvType.CV_8UC4);
-                        Imgproc.cvtColor(yuv, mat, Imgproc.COLOR_YUV2BGR_NV21, 4);
-                        yuv.release();
+                    Mat mat = new Mat(new Size(pictureSize.width, pictureSize.height), CvType.CV_8UC4);
+                    Imgproc.cvtColor(yuv, mat, Imgproc.COLOR_YUV2BGR_NV21, 4);
+                    yuv.release();
 
-                        Size originalPreviewSize = mat.size();
-                        int originalPreviewArea = mat.rows() * mat.cols();
+                    Size originalPreviewSize = mat.size();
+                    int originalPreviewArea = mat.rows() * mat.cols();
 
-                        Quadrilateral largestQuad = ScanUtils.detectLargestQuadrilateral(mat, iScanner);
-                        clearAndInvalidateCanvas();
+                    Quadrilateral largestQuad = ScanUtils.detectLargestQuadrilateral(mat);
+                    clearAndInvalidateCanvas();
 
-                        mat.release();
+                    mat.release();
 
-                        if (null != largestQuad) {
-                            drawLargestRect(largestQuad.contour, largestQuad.points, originalPreviewSize, originalPreviewArea);
-                        } else {
-                            showFindingReceiptHint();
-                        }
+                    if (null != largestQuad) {
+                        drawLargestRect(largestQuad.contour, largestQuad.points, originalPreviewSize, originalPreviewArea);
                     }
-                } catch (Exception e) {
+                    else {
+                        showFindingReceiptHint();
+                    }
+                }
+                catch (Exception e) {
                     showFindingReceiptHint();
                 }
             }

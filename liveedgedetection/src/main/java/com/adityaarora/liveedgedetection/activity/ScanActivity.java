@@ -38,6 +38,7 @@ import com.adityaarora.liveedgedetection.constants.ScanConstants;
 import com.adityaarora.liveedgedetection.enums.ScanHint;
 import com.adityaarora.liveedgedetection.interfaces.IScanner;
 import com.adityaarora.liveedgedetection.util.ScanUtils;
+import com.adityaarora.liveedgedetection.view.LimitedArea;
 import com.adityaarora.liveedgedetection.view.PolygonPoints;
 import com.adityaarora.liveedgedetection.view.PolygonView;
 import com.adityaarora.liveedgedetection.view.ProgressDialogFragment;
@@ -58,7 +59,7 @@ import java.util.Stack;
 
 import static android.view.View.GONE;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
-import static com.adityaarora.liveedgedetection.constants.ScanConstants.SHOW_MANUALMODE_INTERVAL;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.SHOW_MANUAL_MODE_INTERVAL;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.CAPTURING_IMAGE;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.MANUAL_MODE;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.NO_MESSAGE;
@@ -93,7 +94,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private ImageButton openFileBtn;
     private ImageButton captureBtn;
     private ImageButton switchModeBtn;
-    private View limitedArea;
+    private LimitedArea limitedArea;
 
     private Handler handler = new Handler(Looper.getMainLooper());
 
@@ -176,7 +177,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         captureBtn.setVisibility(View.GONE);
         limitedArea.setVisibility(View.GONE);
         switchModeBtn.setImageResource(R.drawable.ic_hand);
-        handler.postDelayed(runnable, SHOW_MANUALMODE_INTERVAL);
+        handler.postDelayed(runnable, SHOW_MANUAL_MODE_INTERVAL);
     }
 
     private View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -347,22 +348,29 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             ArrayList<PointF> points;
             Map<Integer, PointF> pointFs = new HashMap<>();
             try {
-                Quadrilateral quad = ScanUtils.detectLargestQuadrilateral(originalMat, this);
-                if (null != quad) {
-                    double resultArea = Math.abs(Imgproc.contourArea(quad.contour));
-                    double previewArea = originalMat.rows() * originalMat.cols();
-                    if (resultArea > previewArea * 0.08) {
-                        points = new ArrayList<>();
-                        points.add(new PointF((float) quad.points[0].x, (float) quad.points[0].y));
-                        points.add(new PointF((float) quad.points[1].x, (float) quad.points[1].y));
-                        points.add(new PointF((float) quad.points[3].x, (float) quad.points[3].y));
-                        points.add(new PointF((float) quad.points[2].x, (float) quad.points[2].y));
-                    } else {
+                Quadrilateral quad = ScanUtils.detectLargestQuadrilateral(originalMat);
+                if (!mImageSurfaceView.getManualMode()) {
+                    if (null != quad) {
+                        double resultArea = Math.abs(Imgproc.contourArea(quad.contour));
+                        double previewArea = originalMat.rows() * originalMat.cols();
+                        if (resultArea > previewArea * 0.08) {
+                            points = new ArrayList<>();
+                            points.add(new PointF((float) quad.points[0].x, (float) quad.points[0].y));
+                            points.add(new PointF((float) quad.points[1].x, (float) quad.points[1].y));
+                            points.add(new PointF((float) quad.points[3].x, (float) quad.points[3].y));
+                            points.add(new PointF((float) quad.points[2].x, (float) quad.points[2].y));
+                        }
+                        else {
+                            points = ScanUtils.getPolygonDefaultPoints(copyBitmap);
+                        }
+
+                    }
+                    else {
                         points = ScanUtils.getPolygonDefaultPoints(copyBitmap);
                     }
-
-                } else {
-                    points = ScanUtils.getPolygonDefaultPoints(copyBitmap);
+                }
+                else {
+                    points = ScanUtils.getPolygonFromLimitedArea(limitedArea);
                 }
 
                 int index = -1;
@@ -381,17 +389,18 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
                 cropImageView.setImageBitmap(copyBitmap);
                 cropImageView.setScaleType(ImageView.ScaleType.FIT_XY);
-            } catch (Exception e) {
+
+                if (mImageSurfaceView != null) {
+                    mImageSurfaceView.setManualMode(false);
+                }
+            }
+            catch (Exception e) {
                 Log.e(TAG, e.getMessage(), e);
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
-    }
-
-    @Override
-    public void onTestImage(Bitmap bitmap) {
-        ((ImageView)findViewById(R.id.image)).setImageBitmap(bitmap);
     }
 
     private synchronized void showProgressDialog(String message) {
