@@ -59,6 +59,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
     private boolean fromFileSystem = false;
     private boolean manualMode = false;
+    private ScanHint currentStatus;
 
     public ScanSurfaceView(Context context, IScanner iScanner) {
         super(context);
@@ -203,7 +204,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                         Size originalPreviewSize = mat.size();
                         int originalPreviewArea = mat.rows() * mat.cols();
 
-                        Quadrilateral largestQuad = ScanUtils.detectLargestQuadrilateral(mat);
+                        Quadrilateral largestQuad = ScanUtils.detectLargestQuadrilateral(mat, iScanner);
                         clearAndInvalidateCanvas();
 
                         mat.release();
@@ -308,6 +309,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
         border.setStrokeWidth(12);
         iScanner.displayHint(scanHint);
+        currentStatus = scanHint;
         setPaintAndBorder(scanHint, paint, border);
         scanCanvasView.clear();
         scanCanvasView.addShape(newBox, paint, border);
@@ -504,5 +506,9 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         scanCanvasView.clear();
         invalidateCanvas();
         iScanner.displayHint(ScanHint.NO_MESSAGE);
+    }
+
+    public boolean getManualMode() {
+        return this.manualMode;
     }
 }

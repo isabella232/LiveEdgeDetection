@@ -58,6 +58,7 @@ import java.util.Stack;
 
 import static android.view.View.GONE;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.SHOW_MANUALMODE_INTERVAL;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.CAPTURING_IMAGE;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.MANUAL_MODE;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.NO_MESSAGE;
@@ -91,6 +92,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private ImageButton backBtn;
     private ImageButton openFileBtn;
     private ImageButton captureBtn;
+    private ImageButton switchModeBtn;
     private View limitedArea;
 
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -121,6 +123,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         captureBtn = findViewById(R.id.capture_btn);
         captureBtn.setOnClickListener(onClickListener);
         limitedArea = findViewById(R.id.limited_area);
+        switchModeBtn = findViewById(R.id.switch_mode);
+        switchModeBtn.setOnClickListener(onClickListener);
 
         cropAcceptBtn.setOnClickListener(this);
         cropRejectBtn.setOnClickListener(new View.OnClickListener() {
@@ -147,26 +151,32 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            mImageSurfaceView.setManualMode(true);
-            captureBtn.setVisibility(View.VISIBLE);
-            limitedArea.setVisibility(View.VISIBLE);
-            displayHint(MANUAL_MODE);
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    displayHint(NO_MESSAGE);
-                }
-            }, 2000);
+            switchModeBtn.setVisibility(View.VISIBLE);
         }
     };
+
+    private void showManualMode() {
+        mImageSurfaceView.setManualMode(true);
+        captureBtn.setVisibility(View.VISIBLE);
+        limitedArea.setVisibility(View.VISIBLE);
+        switchModeBtn.setImageResource(R.drawable.ic_detector);
+        displayHint(MANUAL_MODE);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                displayHint(NO_MESSAGE);
+            }
+        }, 2000);
+    }
 
     private void goneManualMode() {
         if (mImageSurfaceView != null) {
             mImageSurfaceView.setManualMode(false);
-            captureBtn.setVisibility(View.GONE);
-            limitedArea.setVisibility(View.GONE);
-            handler.postDelayed(runnable, 10000);
         }
+        captureBtn.setVisibility(View.GONE);
+        limitedArea.setVisibility(View.GONE);
+        switchModeBtn.setImageResource(R.drawable.ic_hand);
+        handler.postDelayed(runnable, SHOW_MANUALMODE_INTERVAL);
     }
 
     private View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -181,15 +191,24 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 try {
                     startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), SELECTED_FILE_CODE);
-                } catch (Exception ex) {
-                    Log.e(TAG, "onClick: ", ex);
+                }
+                catch (Exception ex) {
+                    Log.e(TAG, "startActivityForResult: ", ex);
+                }
+            }
+            else if (view.getId() == R.id.capture_btn) {
+                mImageSurfaceView.autoCapture(CAPTURING_IMAGE);
+            }
+            else if (view.getId() == R.id.switch_mode) {
+                if (mImageSurfaceView.getManualMode()) {
+                    goneManualMode();
+                }
+                else {
+                    showManualMode();
                 }
             }
             else if (view.getId() == R.id.back_btn) {
                 finish();
-            }
-            else if (view.getId() == R.id.capture_btn) {
-                mImageSurfaceView.autoCapture(CAPTURING_IMAGE);
             }
         }
     };
@@ -232,6 +251,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         else {
             if (!isPermissionNotGranted) {
                 Log.d(TAG, "checkCameraPermissions() called");
+                goneManualMode();
                 mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, this);
                 cameraPreviewLayout.addView(mImageSurfaceView);
             }
@@ -261,6 +281,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                         @Override
                         public void run() {
                             Log.d(TAG, "run() called");
+                            goneManualMode();
                             mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
                             cameraPreviewLayout.addView(mImageSurfaceView);
                         }
@@ -326,7 +347,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             ArrayList<PointF> points;
             Map<Integer, PointF> pointFs = new HashMap<>();
             try {
-                Quadrilateral quad = ScanUtils.detectLargestQuadrilateral(originalMat);
+                Quadrilateral quad = ScanUtils.detectLargestQuadrilateral(originalMat, this);
                 if (null != quad) {
                     double resultArea = Math.abs(Imgproc.contourArea(quad.contour));
                     double previewArea = originalMat.rows() * originalMat.cols();
@@ -366,6 +387,11 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void onTestImage(Bitmap bitmap) {
+        ((ImageView)findViewById(R.id.image)).setImageBitmap(bitmap);
     }
 
     private synchronized void showProgressDialog(String message) {

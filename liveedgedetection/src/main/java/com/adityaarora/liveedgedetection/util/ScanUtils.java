@@ -18,6 +18,7 @@ import android.util.TypedValue;
 import android.view.Display;
 import android.view.Surface;
 
+import com.adityaarora.liveedgedetection.interfaces.IScanner;
 import com.adityaarora.liveedgedetection.view.Quadrilateral;
 
 import org.opencv.android.Utils;
@@ -313,7 +314,10 @@ public class ScanUtils {
         return previous[1];
     }
 
-    public static Quadrilateral detectLargestQuadrilateral(Mat mat) {
+    private static int threshold = 0;
+    private static int tentative = 0;
+
+    public static Quadrilateral detectLargestQuadrilateral(Mat mat, IScanner iScanner) {
         Mat mGrayMat = new Mat(mat.rows(), mat.cols(), CV_8UC1);
         Mat dst = new Mat(mat.rows(), mat.cols(), CV_8UC1);
 
@@ -321,28 +325,33 @@ public class ScanUtils {
         double avgCenter = (colorsCenter[0] + colorsCenter[1] + colorsCenter[2]) / 3;
         double avgCorner = getAvgCorner(mat);
 
+        Log.d(TAG, "detectLargestQuadrilateral: " + threshold);
+
         if (avgCorner >= THRESHOLD) {
             // Sfondo chiaro
             Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2HSV, 4);
             List<Mat> mats = new ArrayList<>();
             Core.split(mGrayMat, mats);
             mGrayMat = mats.get(1);
-            if (avgCenter >= THRESHOLD) {
-                // Documento bianco su sfondo bianco
-                Imgproc.medianBlur(mGrayMat, mGrayMat, 11);
-                Imgproc.threshold(mGrayMat, dst, 5, 255, THRESH_BINARY_INV);
-            }
-            else {
-                // Documento più scuro dello sfondo
-                Imgproc.medianBlur(mGrayMat, mGrayMat, 11);
-                Imgproc.threshold(mGrayMat, dst, 5, 255, THRESH_BINARY + THRESH_OTSU);
-            }
+//                Imgproc.medianBlur(mGrayMat, mGrayMat, 1);
+            Imgproc.threshold(mGrayMat, dst, threshold, 255, THRESH_BINARY_INV);
         }
+
         else {
             // Sfondo scuro
             Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2GRAY, 4);
             Imgproc.threshold(mGrayMat, dst, 150, 255, THRESH_BINARY + THRESH_OTSU);
         }
+        if (tentative > 2) {
+            threshold++;
+            tentative = 0;
+        }
+        tentative++;
+
+
+//        Bitmap bitmap = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888);
+//        Utils.matToBitmap(dst, bitmap);
+//        iScanner.onTestImage(bitmap);
 
         List<MatOfPoint> largestContour = findLargestContour(dst);
         if (null != largestContour) {
