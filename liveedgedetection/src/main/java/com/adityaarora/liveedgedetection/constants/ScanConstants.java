@@ -8,12 +8,12 @@ public class ScanConstants {
     /**
      * Campo JSON con path dell'immagine o del PDF salvato
      */
-    public static final String PATH_RESULT = "pathResult";
+    public static final String PATH_RESULT = "path";
 
     /**
      * Campo JSON per identificare il tipo di documento
      */
-    public static final String TYPE_RESULT = "typeResult";
+    public static final String TYPE_RESULT = "type";
 
     /**
      * Campo JSON per identificare la modalità di acquisizione
