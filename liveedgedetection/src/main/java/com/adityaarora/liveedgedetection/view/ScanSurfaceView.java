@@ -41,25 +41,28 @@ import static org.opencv.core.CvType.CV_8UC1;
  */
 
 public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callback {
+
     private static final String TAG = ScanSurfaceView.class.getSimpleName();
-    SurfaceView mSurfaceView;
-    private final ScanCanvasView scanCanvasView;
+
+    public SurfaceView mSurfaceView;
+    private Camera camera;
+    private CountDownTimer autoCaptureTimer;
+    private Camera.Size previewSize;
+    private AcquisitionMode acquisitionMode;
     private int vWidth = 0;
     private int vHeight = 0;
-
-    private final Context context;
-    private Camera camera;
-
-    private final IScanner iScanner;
-    private CountDownTimer autoCaptureTimer;
     private int secondsLeft;
-    private boolean isAutoCaptureScheduled;
-    private Camera.Size previewSize;
+    private final IScanner iScanner;
+    private final Context context;
+    private final ScanCanvasView scanCanvasView;
     private boolean isCapturing = false;
+    private boolean isAutoCaptureScheduled;
 
-    private boolean fromFileSystem = false;
-    private boolean manualMode = false;
-    private ScanHint currentStatus;
+    public enum AcquisitionMode {
+        FROM_FILESYSTEM,
+        MANUAL_MODE,
+        DETECTION_MODE
+    }
 
     public ScanSurfaceView(Context context, IScanner iScanner) {
         super(context);
@@ -75,7 +78,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        if (!fromFileSystem) {
+        if (acquisitionMode != AcquisitionMode.FROM_FILESYSTEM ) {
             try {
                 requestLayout();
                 openCamera();
@@ -88,12 +91,17 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         }
     }
 
-    public boolean getFromFilesystem() {
-        return fromFileSystem;
+    public void setAcquisitionMode(AcquisitionMode acquisitionMode) {
+        this.acquisitionMode = acquisitionMode;
+        if (acquisitionMode == AcquisitionMode.MANUAL_MODE) {
+            scanCanvasView.clear();
+            invalidateCanvas();
+            iScanner.displayHint(ScanHint.NO_MESSAGE);
+        }
     }
 
-    public void setFromFilesystem(boolean value) {
-        fromFileSystem = value;
+    public AcquisitionMode getAcquisitionMode() {
+        return acquisitionMode;
     }
 
     public void clearAndInvalidateCanvas() {
@@ -129,7 +137,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        if (fromFileSystem) return;
+        if (acquisitionMode == AcquisitionMode.FROM_FILESYSTEM) return;
         if (vWidth == vHeight) {
             return;
         }
@@ -188,7 +196,8 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     private final Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
-            if (null != camera && !manualMode && (System.currentTimeMillis() - lastCall) > INTERVAL_FRAME) {
+            if ((null != camera) && (getAcquisitionMode() != AcquisitionMode.MANUAL_MODE) &&
+                    (getAcquisitionMode() != AcquisitionMode.FROM_FILESYSTEM) && (System.currentTimeMillis() - lastCall) > INTERVAL_FRAME) {
                 lastCall = System.currentTimeMillis();
                 try {
                     Camera.Size pictureSize = camera.getParameters().getPreviewSize();
@@ -310,7 +319,6 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
         border.setStrokeWidth(12);
         iScanner.displayHint(scanHint);
-        currentStatus = scanHint;
         setPaintAndBorder(scanHint, paint, border);
         scanCanvasView.clear();
         scanCanvasView.addShape(newBox, paint, border);
@@ -500,16 +508,5 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
             Log.d("layout", "right:" + nW);
             Log.d("layout", "bottom:" + nH);
         }
-    }
-
-    public void setManualMode(boolean manualMode) {
-        this.manualMode = manualMode;
-        scanCanvasView.clear();
-        invalidateCanvas();
-        iScanner.displayHint(ScanHint.NO_MESSAGE);
-    }
-
-    public boolean getManualMode() {
-        return this.manualMode;
     }
 }

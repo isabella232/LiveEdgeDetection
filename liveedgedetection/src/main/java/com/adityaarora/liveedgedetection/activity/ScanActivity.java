@@ -68,8 +68,8 @@ import static com.adityaarora.liveedgedetection.enums.ScanHint.NO_MESSAGE;
  * This class initiates camera and detects edges on live view
  */
 public class ScanActivity extends AppCompatActivity implements IScanner, View.OnClickListener, ScanUtils.OnSaveListener {
-    private static final String TAG = ScanActivity.class.getSimpleName();
 
+    private static final String TAG = ScanActivity.class.getSimpleName();
     private static final int MY_PERMISSIONS_REQUEST = 101;
     private static final int SELECTED_FILE_CODE = 102;
 
@@ -134,19 +134,18 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     TransitionManager.beginDelayedTransition(containerScan);
                 }
-                goneManualMode();
                 cropLayout.setVisibility(View.GONE);
-                if (mImageSurfaceView.getFromFilesystem()) {
+                if (mImageSurfaceView.getAcquisitionMode() == ScanSurfaceView.AcquisitionMode.FROM_FILESYSTEM) {
                     mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
                     cameraPreviewLayout.addView(mImageSurfaceView);
                 }
                 else {
                     mImageSurfaceView.setPreviewCallback();
                 }
+                goneManualMode();
             }
         });
         checkCameraPermissions();
-        goneManualMode();
     }
 
     private Runnable runnable = new Runnable() {
@@ -157,7 +156,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     };
 
     private void showManualMode() {
-        mImageSurfaceView.setManualMode(true);
+        mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.MANUAL_MODE);
         captureBtn.setVisibility(View.VISIBLE);
         limitedArea.setVisibility(View.VISIBLE);
         switchModeBtn.setImageResource(R.drawable.ic_detector);
@@ -167,12 +166,13 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             public void run() {
                 displayHint(NO_MESSAGE);
             }
-        }, 2000);
+        }, 1000);
     }
 
     private void goneManualMode() {
+        Log.d(TAG, "goneManualMode() called");
         if (mImageSurfaceView != null) {
-            mImageSurfaceView.setManualMode(false);
+            mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.DETECTION_MODE);
         }
         captureBtn.setVisibility(View.GONE);
         limitedArea.setVisibility(View.GONE);
@@ -184,7 +184,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         @Override
         public void onClick(View view) {
             if (view.getId() == R.id.open_file_btn) {
-                mImageSurfaceView.setFromFilesystem(true);
+                mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.FROM_FILESYSTEM);
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("*/*");
                 String[] mimetypes = {"image/*", "application/pdf"};
@@ -201,7 +201,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 mImageSurfaceView.autoCapture(CAPTURING_IMAGE);
             }
             else if (view.getId() == R.id.switch_mode) {
-                if (mImageSurfaceView.getManualMode()) {
+                if (mImageSurfaceView.getAcquisitionMode() == ScanSurfaceView.AcquisitionMode.MANUAL_MODE) {
                     goneManualMode();
                 }
                 else {
@@ -238,7 +238,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             }
         }
         else {
-            mImageSurfaceView.setFromFilesystem(false);
+            mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.DETECTION_MODE);
         }
     }
 
@@ -252,7 +252,6 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         else {
             if (!isPermissionNotGranted) {
                 Log.d(TAG, "checkCameraPermissions() called");
-                goneManualMode();
                 mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, this);
                 cameraPreviewLayout.addView(mImageSurfaceView);
             }
@@ -260,6 +259,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 isPermissionNotGranted = false;
             }
         }
+        goneManualMode();
     }
 
     @Override
@@ -282,7 +282,6 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                         @Override
                         public void run() {
                             Log.d(TAG, "run() called");
-                            goneManualMode();
                             mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
                             cameraPreviewLayout.addView(mImageSurfaceView);
                         }
@@ -349,7 +348,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             Map<Integer, PointF> pointFs = new HashMap<>();
             try {
                 Quadrilateral quad = ScanUtils.detectLargestQuadrilateral(originalMat);
-                if (!mImageSurfaceView.getManualMode()) {
+                if (mImageSurfaceView.getAcquisitionMode() != ScanSurfaceView.AcquisitionMode.MANUAL_MODE) {
                     if (null != quad) {
                         double resultArea = Math.abs(Imgproc.contourArea(quad.contour));
                         double previewArea = originalMat.rows() * originalMat.cols();
@@ -443,7 +442,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         setResult(Activity.RESULT_OK, new Intent()
                 .putExtra(ScanConstants.PATH_RESULT, paths[1])
                 .putExtra(ScanConstants.TYPE_RESULT, paths[2])
-                .putExtra(ScanConstants.FROM_MANUAL_MODE, mImageSurfaceView.getManualMode()));
+                .putExtra(ScanConstants.ACQUISITION_MODE, mImageSurfaceView.getAcquisitionMode().toString()));
         finish();
     }
 }

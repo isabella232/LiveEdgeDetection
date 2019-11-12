@@ -57,13 +57,12 @@ public class MainActivity extends AppCompatActivity {
                 if (null != data && null != data.getExtras()) {
                     try {
                         JSONObject json = new JSONObject();
-
                         String pathFile = data.getExtras().getString(ScanConstants.PATH_RESULT);
                         String typeFile = data.getExtras().getString(ScanConstants.TYPE_RESULT);
-                        String fromManualMode = data.getExtras().getBoolean(ScanConstants.FROM_MANUAL_MODE) ? "Modalità manuale" : "Modalità automatica";
+                        String acquisitionMode = data.getExtras().getString(ScanConstants.ACQUISITION_MODE);
                         json.put(ScanConstants.PATH_RESULT, pathFile);
                         json.put(ScanConstants.TYPE_RESULT, typeFile);
-                        json.put(ScanConstants.FROM_MANUAL_MODE, fromManualMode);
+                        json.put(ScanConstants.ACQUISITION_MODE, acquisitionMode);
                         Bitmap baseBitmap = ScanUtils.decodeBitmapFromFile(pathFile);
                         scannedImageView.setImageBitmap(baseBitmap);
                     }

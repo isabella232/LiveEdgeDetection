@@ -18,7 +18,7 @@ public class ScanConstants {
     /**
      * Campo JSON per identificare la modalità di acquisizione
      */
-    public static final String FROM_MANUAL_MODE = "fromManualMode";
+    public static final String ACQUISITION_MODE = "acquisitionMode";
 
     /**
      * Intestazione del nome dell'immagine croppata e salvata
