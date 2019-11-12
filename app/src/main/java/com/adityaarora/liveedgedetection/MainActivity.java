@@ -60,8 +60,10 @@ public class MainActivity extends AppCompatActivity {
 
                         String pathFile = data.getExtras().getString(ScanConstants.PATH_RESULT);
                         String typeFile = data.getExtras().getString(ScanConstants.TYPE_RESULT);
-                        json.put("path", pathFile);
-                        json.put("type", typeFile);
+                        String fromManualMode = data.getExtras().getBoolean(ScanConstants.FROM_MANUAL_MODE) ? "Modalità manuale" : "Modalità automatica";
+                        json.put(ScanConstants.PATH_RESULT, pathFile);
+                        json.put(ScanConstants.TYPE_RESULT, typeFile);
+                        json.put(ScanConstants.FROM_MANUAL_MODE, fromManualMode);
                         Bitmap baseBitmap = ScanUtils.decodeBitmapFromFile(pathFile);
                         scannedImageView.setImageBitmap(baseBitmap);
                     }

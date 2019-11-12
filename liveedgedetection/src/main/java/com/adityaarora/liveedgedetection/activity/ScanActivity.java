@@ -389,10 +389,6 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
                 cropImageView.setImageBitmap(copyBitmap);
                 cropImageView.setScaleType(ImageView.ScaleType.FIT_XY);
-
-                if (mImageSurfaceView != null) {
-                    mImageSurfaceView.setManualMode(false);
-                }
             }
             catch (Exception e) {
                 Log.e(TAG, e.getMessage(), e);
@@ -446,7 +442,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     public void onCompleted(String[] paths) {
         setResult(Activity.RESULT_OK, new Intent()
                 .putExtra(ScanConstants.PATH_RESULT, paths[1])
-                .putExtra(ScanConstants.TYPE_RESULT, paths[2]));
+                .putExtra(ScanConstants.TYPE_RESULT, paths[2])
+                .putExtra(ScanConstants.FROM_MANUAL_MODE, mImageSurfaceView.getManualMode()));
         finish();
     }
 }
