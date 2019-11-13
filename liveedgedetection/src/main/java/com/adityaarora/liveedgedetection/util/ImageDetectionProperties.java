@@ -1,7 +1,5 @@
 package com.adityaarora.liveedgedetection.util;
 
-import android.util.Log;
-
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 
@@ -9,31 +7,33 @@ import org.opencv.core.Point;
  * This class holds configuration of detected edges
  */
 public class ImageDetectionProperties {
+
     private final double previewWidth;
     private final double previewHeight;
     private final double resultWidth;
     private final double resultHeight;
+    private final double previewArea;
+    private final double resultArea;
     private final Point topLeftPoint;
     private final Point bottomLeftPoint;
     private final Point bottomRightPoint;
     private final Point topRightPoint;
-    private final double previewArea;
-    private final double resultArea;
 
     public ImageDetectionProperties(double previewWidth, double previewHeight, double resultWidth,
                                     double resultHeight, double previewArea, double resultArea,
                                     Point topLeftPoint, Point bottomLeftPoint, Point bottomRightPoint,
                                     Point topRightPoint) {
-        this.previewWidth   = previewWidth;
-        this.previewHeight  = previewHeight;
-        this.previewArea    = previewArea;
-        this.resultWidth    = resultWidth;
-        this.resultHeight   = resultHeight;
-        this.resultArea     = resultArea;
-        this.bottomLeftPoint    = bottomLeftPoint;
-        this.bottomRightPoint   = bottomRightPoint;
-        this.topLeftPoint       = topLeftPoint;
-        this.topRightPoint      = topRightPoint;
+
+        this.previewWidth = previewWidth;
+        this.previewHeight = previewHeight;
+        this.previewArea = previewArea;
+        this.resultWidth = resultWidth;
+        this.resultHeight = resultHeight;
+        this.resultArea = resultArea;
+        this.bottomLeftPoint = bottomLeftPoint;
+        this.bottomRightPoint = bottomRightPoint;
+        this.topLeftPoint = topLeftPoint;
+        this.topRightPoint = topRightPoint;
     }
 
     public boolean isDetectedAreaBeyondLimits() {
