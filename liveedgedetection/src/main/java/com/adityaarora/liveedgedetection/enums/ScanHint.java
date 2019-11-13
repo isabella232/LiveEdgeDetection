@@ -6,6 +6,7 @@ package com.adityaarora.liveedgedetection.enums;
 public enum ScanHint {
     MOVE_AWAY,
     MOVE_CLOSER,
+    ROTATE,
     FIND_RECT,
     ADJUST_ANGLE,
     CAPTURING_IMAGE,

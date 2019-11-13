@@ -267,8 +267,10 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         if (bottomWidth > resultWidth)
             resultWidth = bottomWidth;
 
-        Log.i(TAG, "resultWidth: " + String.valueOf(resultWidth));
-        Log.i(TAG, "resultHeight: " + String.valueOf(resultHeight));
+        Log.i(TAG, "previewWidth: " + previewWidth);
+        Log.i(TAG, "previewHeight: " + previewHeight);
+        Log.i(TAG, "resultWidth: " + resultWidth);
+        Log.i(TAG, "resultHeight: " + resultHeight);
 
         ImageDetectionProperties imgDetectionPropsObj
                 = new ImageDetectionProperties(previewWidth, previewHeight, resultWidth, resultHeight,
@@ -279,27 +281,52 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         if (imgDetectionPropsObj.isDetectedAreaBeyondLimits()) {
             scanHint = ScanHint.FIND_RECT;
             cancelAutoCapture();
-        } else if (imgDetectionPropsObj.isDetectedAreaBelowLimits()) {
+        }
+        else if (imgDetectionPropsObj.isDetectedAreaBelowLimits()) {
             cancelAutoCapture();
             if (imgDetectionPropsObj.isEdgeTouching()) {
                 scanHint = ScanHint.MOVE_AWAY;
-            } else {
-                scanHint = ScanHint.MOVE_CLOSER;
             }
-        } else if (imgDetectionPropsObj.isDetectedHeightAboveLimit()) {
+            else {
+                if (imgDetectionPropsObj.rotateSmartphone()) {
+                    scanHint = ScanHint.ROTATE;
+                }
+                else {
+                    scanHint = ScanHint.MOVE_CLOSER;
+                }
+            }
+        }
+        else if (imgDetectionPropsObj.isDetectedHeightAboveLimit()) {
             cancelAutoCapture();
-            scanHint = ScanHint.MOVE_AWAY;
-        } else if (imgDetectionPropsObj.isDetectedWidthAboveLimit() || imgDetectionPropsObj.isDetectedAreaAboveLimit()) {
+            if (imgDetectionPropsObj.rotateSmartphone()) {
+                scanHint = ScanHint.ROTATE;
+            }
+            else {
+                scanHint = ScanHint.MOVE_AWAY;
+            }
+        }
+        else if (imgDetectionPropsObj.isDetectedWidthAboveLimit() || imgDetectionPropsObj.isDetectedAreaAboveLimit()) {
             cancelAutoCapture();
-            scanHint = ScanHint.MOVE_AWAY;
-        } else {
+            if (imgDetectionPropsObj.rotateSmartphone()) {
+                scanHint = ScanHint.ROTATE;
+            }
+            else {
+                scanHint = ScanHint.MOVE_AWAY;
+            }
+        }
+        else {
             if (imgDetectionPropsObj.isEdgeTouching()) {
                 cancelAutoCapture();
                 scanHint = ScanHint.MOVE_AWAY;
-            } else if (imgDetectionPropsObj.isAngleNotCorrect(approx)) {
+            }
+            else if (imgDetectionPropsObj.isAngleNotCorrect(approx)) {
                 cancelAutoCapture();
                 scanHint = ScanHint.ADJUST_ANGLE;
-            } else {
+            }
+            else if (imgDetectionPropsObj.rotateSmartphone()) {
+                scanHint = ScanHint.ROTATE;
+            }
+            else {
                 Log.i(TAG, "GREEN" + "(resultWidth/resultHeight) > 4: " + (resultWidth / resultHeight) +
                         " points[0].x == 0 && points[3].x == 0: " + points[0].x + ": " + points[3].x +
                         " points[2].x == previewHeight && points[1].x == previewHeight: " + points[2].x + ": " + points[1].x +
@@ -388,6 +415,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         switch (scanHint) {
             case MOVE_CLOSER:
             case MOVE_AWAY:
+            case ROTATE:
             case ADJUST_ANGLE:
                 paintColor = Color.argb(30, 255, 38, 0);
                 borderColor = Color.rgb(255, 38, 0);

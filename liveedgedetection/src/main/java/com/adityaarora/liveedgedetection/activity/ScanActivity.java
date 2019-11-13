@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Stack;
 
 import static android.view.View.GONE;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.MIME_TYPES;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SHOW_MANUAL_MODE_INTERVAL;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.CAPTURING_IMAGE;
@@ -97,6 +98,10 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private LimitedArea limitedArea;
 
     private Handler handler = new Handler(Looper.getMainLooper());
+
+    static {
+        System.loadLibrary(mOpenCvLibrary);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,7 +161,9 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     };
 
     private void showManualMode() {
-        mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.MANUAL_MODE);
+        if (mImageSurfaceView != null) {
+            mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.MANUAL_MODE);
+        }
         captureBtn.setVisibility(View.VISIBLE);
         limitedArea.setVisibility(View.VISIBLE);
         switchModeBtn.setImageResource(R.drawable.ic_detector);
@@ -170,7 +177,6 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     }
 
     private void goneManualMode() {
-        Log.d(TAG, "goneManualMode() called");
         if (mImageSurfaceView != null) {
             mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.DETECTION_MODE);
         }
@@ -187,14 +193,13 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.FROM_FILESYSTEM);
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("*/*");
-                String[] mimetypes = {"image/*", "application/pdf"};
-                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimetypes);
+                intent.putExtra(Intent.EXTRA_MIME_TYPES, MIME_TYPES);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 try {
                     startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), SELECTED_FILE_CODE);
                 }
                 catch (Exception ex) {
-                    Log.e(TAG, "startActivityForResult: ", ex);
+                    Log.e(TAG, ex.toString(), ex);
                 }
             }
             else if (view.getId() == R.id.capture_btn) {
@@ -281,7 +286,6 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Log.d(TAG, "run() called");
                             mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
                             cameraPreviewLayout.addView(mImageSurfaceView);
                         }
@@ -302,6 +306,10 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         switch (scanHint) {
             case MOVE_CLOSER:
                 captureHintText.setText(getResources().getString(R.string.move_closer));
+                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_red));
+                break;
+            case ROTATE:
+                captureHintText.setText(getResources().getString(R.string.rotate));
                 captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_red));
                 break;
             case MOVE_AWAY:
@@ -411,10 +419,6 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
     private synchronized void dismissDialog() {
         progressDialogFragment.dismissAllowingStateLoss();
-    }
-
-    static {
-        System.loadLibrary(mOpenCvLibrary);
     }
 
     @Override

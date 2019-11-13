@@ -19,12 +19,10 @@ import android.util.TypedValue;
 import android.view.Display;
 import android.view.Surface;
 
-import com.adityaarora.liveedgedetection.interfaces.IScanner;
 import com.adityaarora.liveedgedetection.view.LimitedArea;
 import com.adityaarora.liveedgedetection.view.Quadrilateral;
 
 import org.opencv.android.Utils;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -54,10 +52,8 @@ import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_FO
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_NAME;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PHOTO_QUALITY;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SCHEME;
-import static com.adityaarora.liveedgedetection.constants.ScanConstants.THRESHOLD;
 import static org.opencv.core.CvType.CV_8UC1;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
-import static org.opencv.imgproc.Imgproc.THRESH_BINARY_INV;
 import static org.opencv.imgproc.Imgproc.THRESH_OTSU;
 
 /**
@@ -313,6 +309,7 @@ public class ScanUtils {
             }
         }
         tmp.release();
+
         return previous[1];
     }
 
@@ -326,8 +323,8 @@ public class ScanUtils {
 //        double[] colorsCenter = mat.get(mat.height() / 2, mat.width() / 2);
 //        double avgCenter = (colorsCenter[0] + colorsCenter[1] + colorsCenter[2]) / 3;
 //        double avgCorner = getAvgCorner(mat);
-
-//        if (avgCorner >= THRESHOLD) {
+//
+//        if (avgCorner >= BACKGROUND_THRESHOLD) {
 //            // Sfondo chiaro
 //            Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2HSV, 4);
 //            List<Mat> mats = new ArrayList<>();

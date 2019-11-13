@@ -1,10 +1,7 @@
 package com.adityaarora.liveedgedetection.constants;
 
-/**
- * This class defines constants
- */
-
 public class ScanConstants {
+
     /**
      * Campo JSON con path dell'immagine o del PDF salvato
      */
@@ -24,9 +21,10 @@ public class ScanConstants {
      * Intestazione del nome dell'immagine croppata e salvata
      */
     public static final String IMAGE_NAME = "crop_";
-    public static final String IMAGE_FOLDER = "/Unisalute";
+    public static final String IMAGE_FOLDER = "/Unisalute"; // TODO Sostituire con percorso reale quando verrà implementata la funziionalità
     public static final String SCHEME = "content";
     public static final String PDF_EXT = "pdf";
+    public static final String[] MIME_TYPES = { "image/*", "application/pdf" };
 
     /**
      * Intervallo per acquisizione del frame
@@ -36,7 +34,7 @@ public class ScanConstants {
     /**
      * Soglia minima dello sfondo
      */
-    public static final int THRESHOLD = 155;
+    public static final int BACKGROUND_THRESHOLD = 155;
     public static final int HIGHER_SAMPLING_THRESHOLD = 2200;
     public static final int PHOTO_QUALITY = 90;
 

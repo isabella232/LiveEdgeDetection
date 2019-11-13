@@ -10,4 +10,5 @@
     <string name="hold_still">Hold still</string>
     <string name="manual_mode">Monaul mode activated</string>
     <string name="capturing">Capturing image</string>
+    <string name="rotate">Wheel smartphone</string>
 </resources>
