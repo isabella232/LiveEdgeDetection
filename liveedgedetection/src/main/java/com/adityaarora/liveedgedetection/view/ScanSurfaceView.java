@@ -48,7 +48,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     private Camera camera;
     private CountDownTimer autoCaptureTimer;
     private Camera.Size previewSize;
-    private AcquisitionMode acquisitionMode;
+    private AcquisitionMode acquisitionMode = AcquisitionMode.DETECTION_MODE;
     private int vWidth = 0;
     private int vHeight = 0;
     private int secondsLeft;
