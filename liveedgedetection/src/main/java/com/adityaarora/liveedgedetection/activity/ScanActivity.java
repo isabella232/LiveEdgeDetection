@@ -167,13 +167,6 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         captureBtn.setVisibility(View.VISIBLE);
         limitedArea.setVisibility(View.VISIBLE);
         switchModeBtn.setImageResource(R.drawable.ic_detector);
-        displayHint(MANUAL_MODE);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                displayHint(NO_MESSAGE);
-            }
-        }, 1000);
     }
 
     private void goneManualMode() {
