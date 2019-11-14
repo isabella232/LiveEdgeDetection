@@ -1,5 +1,7 @@
 package com.adityaarora.liveedgedetection.util;
 
+import android.util.Log;
+
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 
@@ -99,7 +101,7 @@ public class ImageDetectionProperties {
         // TODO fixare con misure esatte
         double percentHeight = (resultHeight * 100) / previewHeight;
         double percentWidth = (resultWidth * 100) / previewWidth;
-        return (percentHeight < 70 && percentWidth > 70);
+        return (percentHeight < 55 && percentWidth > 70);
     }
 
     public boolean isReceiptToughingSides() {
