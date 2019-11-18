@@ -138,7 +138,6 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
             if (null != flashModes && flashModes.contains(Camera.Parameters.FLASH_MODE_AUTO)) {
                 cameraParams.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
             }
-
             camera.setParameters(cameraParams);
         }
     }
@@ -212,21 +211,21 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         public void onPreviewFrame(final byte[] data, final Camera camera) {
             if ((null != camera) && (getAcquisitionMode() != AcquisitionMode.MANUAL_MODE) &&
                     (getAcquisitionMode() != AcquisitionMode.FROM_FILESYSTEM) && (System.currentTimeMillis() - lastCall) > INTERVAL_FRAME) {
-                lastCall = System.currentTimeMillis();
                 try {
+                    final Camera.Size pictureSize = camera.getParameters().getPreviewSize();
                     processingThread.post(new Runnable() {
                         @Override
                         public void run() {
-                            Camera.Size pictureSize = camera.getParameters().getPreviewSize();
-
                             Mat yuv = new Mat(new Size(pictureSize.width, pictureSize.height * 1.5), CV_8UC1);
                             yuv.put(0, 0, data);
 
                             mat = new Mat(new Size(pictureSize.width, pictureSize.height), CvType.CV_8UC4);
-                            Imgproc.cvtColor(yuv, mat, Imgproc.COLOR_YUV2BGR_NV21, 4);
-                            yuv.release();
+                            if (!mat.empty()) {
+                                Imgproc.cvtColor(yuv, mat, Imgproc.COLOR_YUV2BGR_NV21, 4);
+                                yuv.release();
 
-                            largestQuad = ScanUtils.detectLargestQuadrilateral(mat);
+                                largestQuad = ScanUtils.detectLargestQuadrilateral(mat);
+                            }
                         }
                     });
                     clearAndInvalidateCanvas();
@@ -245,6 +244,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                 catch (Exception e) {
                     showFindingReceiptHint();
                 }
+                lastCall = System.currentTimeMillis();
             }
         }
     };

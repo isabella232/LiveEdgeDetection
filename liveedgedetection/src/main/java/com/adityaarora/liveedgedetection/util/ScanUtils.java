@@ -57,6 +57,8 @@ import static com.adityaarora.liveedgedetection.constants.ScanConstants.PHOTO_QU
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SCHEME;
 import static org.opencv.core.CvType.CV_8UC1;
 import static org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_MEAN_C;
+import static org.opencv.imgproc.Imgproc.MORPH_CLOSE;
+import static org.opencv.imgproc.Imgproc.MORPH_RECT;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY_INV;
 
 /**
@@ -317,36 +319,40 @@ public class ScanUtils {
     }
 
     public static Quadrilateral detectLargestQuadrilateral(Mat mat) {
-        Mat mGrayMat = new Mat(mat.rows(), mat.cols(), CV_8UC1);
-        Mat dst = new Mat(mat.rows(), mat.cols(), CV_8UC1);
-        Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2GRAY, 4);
-        // Dilatazione per sfondo scuro
-        int iterations = 1;
+        try {
+            Mat mGrayMat = new Mat(mat.rows(), mat.cols(), CV_8UC1);
+            Mat dst = new Mat(mat.rows(), mat.cols(), CV_8UC1);
+            Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2GRAY, 4);
+            // Dilatazione per sfondo scuro
+            int iterations = 1;
 
-        double avgCorner = getAvgCorner(mat);
-        if (avgCorner >= BACKGROUND_THRESHOLD) {
-            // Dilatazione per sfondo chiaro
-            iterations = 21;
-        }
-
-        Imgproc.bilateralFilter(mGrayMat, dst, 9, 75, 75);
-        Imgproc.adaptiveThreshold(dst, dst, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 115, 4);
-        int border = 3;
-        Core.copyMakeBorder(dst, dst, border, border, border, border, Core.BORDER_REFLECT_101);
-        Imgproc.Canny(dst, dst, 200, 250);
-        Imgproc.dilate(dst, dst, new Mat(), new Point(-1, -1), iterations);
-
-        List<MatOfPoint> largestContour = findLargestContour(dst);
-        if (null != largestContour) {
-            Imgproc.drawContours(dst, largestContour, -1, new Scalar(0, 0, 255), 3);
-            Quadrilateral mLargestRect = findQuadrilateral(largestContour);
-            if (mLargestRect != null) {
-                mGrayMat.release();
-                dst.release();
-                return mLargestRect;
+            double avgCorner = getAvgCorner(mat);
+            if (avgCorner >= BACKGROUND_THRESHOLD) {
+                // Dilatazione per sfondo chiaro
+                iterations = 23;
             }
+
+            Imgproc.bilateralFilter(mGrayMat, dst, 11, 11, 11);
+            Imgproc.adaptiveThreshold(dst, dst, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 115, 4);
+            int border = 3;
+            Core.copyMakeBorder(dst, dst, border, border, border, border, Core.BORDER_REFLECT_101);
+            Imgproc.Canny(dst, dst, 50, 150);
+            Imgproc.dilate(dst, dst, new Mat(), new Point(-1, -1), iterations);
+
+            List<MatOfPoint> largestContour = findLargestContour(dst);
+            if (null != largestContour) {
+                Quadrilateral mLargestRect = findQuadrilateral(largestContour);
+                if (mLargestRect != null) {
+                    mGrayMat.release();
+                    dst.release();
+                    return mLargestRect;
+                }
+            }
+            return null;
         }
-        return null;
+        catch (Exception e) {
+            return null;
+        }
     }
 
     public static double getMaxCosine(double maxCosine, Point[] approxPoints) {
@@ -406,13 +412,11 @@ public class ScanUtils {
         Mat mContoursMat = new Mat();
         mContoursMat.create(inputMat.rows(), inputMat.cols(), CvType.CV_8U);
 
-        if (mContourList != null)
-        {
-            for (int i = 0; i < mContourList.size(); i++)
-            {
-                Imgproc.drawContours(inputMat, mContourList, i, new Scalar(255, 0, 0), -1);
+        if (mContourList != null) {
+            for (int i = 0; i < mContourList.size(); i++) {
+                Imgproc.drawContours(inputMat, mContourList, i, new Scalar(0, 0, 255), 3);
+//                Imgproc.drawContours(inputMat, mContourList, i, new Scalar(255, 0, 0), -1);
             }
-
         }
 
         if (mContourList.size() != 0) {
@@ -432,7 +436,7 @@ public class ScanUtils {
             MatOfPoint2f c2f = new MatOfPoint2f(c.toArray());
             double peri = Imgproc.arcLength(c2f, true);
             MatOfPoint2f approx = new MatOfPoint2f();
-            Imgproc.approxPolyDP(c2f, approx, 0.02 * peri, true);
+            Imgproc.approxPolyDP(c2f, approx, 0.09 * peri, true);
             Point[] points = approx.toArray();
             // select biggest 4 angles polygon
             if (approx.rows() == 4) {
