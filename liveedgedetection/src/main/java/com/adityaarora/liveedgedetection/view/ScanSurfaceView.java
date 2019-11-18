@@ -12,6 +12,8 @@ import android.graphics.drawable.shapes.PathShape;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -49,6 +51,10 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     private CountDownTimer autoCaptureTimer;
     private Camera.Size previewSize;
     private AcquisitionMode acquisitionMode = AcquisitionMode.DETECTION_MODE;
+    private HandlerThread handlerThread = new HandlerThread("processing");
+    private Handler processingThread;
+    private Mat mat;
+    private Quadrilateral largestQuad;
     private int vWidth = 0;
     private int vHeight = 0;
     private int secondsLeft;
@@ -74,6 +80,8 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         SurfaceHolder surfaceHolder = mSurfaceView.getHolder();
         surfaceHolder.addCallback(this);
         this.iScanner = iScanner;
+        this.handlerThread.start();
+        this.processingThread = new Handler(handlerThread.getLooper());
     }
 
     @Override
@@ -133,6 +141,12 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
             camera.setParameters(cameraParams);
         }
+    }
+
+    public void setFlash(boolean isEnable) {
+        Camera.Parameters cameraParams = camera.getParameters();
+        cameraParams.setFlashMode(isEnable ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_ON);
+        camera.setParameters(cameraParams);
     }
 
     @Override
@@ -195,27 +209,30 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     long lastCall = 0;
     private final Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
         @Override
-        public void onPreviewFrame(byte[] data, Camera camera) {
+        public void onPreviewFrame(final byte[] data, final Camera camera) {
             if ((null != camera) && (getAcquisitionMode() != AcquisitionMode.MANUAL_MODE) &&
                     (getAcquisitionMode() != AcquisitionMode.FROM_FILESYSTEM) && (System.currentTimeMillis() - lastCall) > INTERVAL_FRAME) {
                 lastCall = System.currentTimeMillis();
                 try {
-                    Camera.Size pictureSize = camera.getParameters().getPreviewSize();
-                    Log.d(TAG, "onPreviewFrame - received image " + pictureSize.width + "x" + pictureSize.height);
+                    processingThread.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Camera.Size pictureSize = camera.getParameters().getPreviewSize();
 
-                    Mat yuv = new Mat(new Size(pictureSize.width, pictureSize.height * 1.5), CV_8UC1);
-                    yuv.put(0, 0, data);
+                            Mat yuv = new Mat(new Size(pictureSize.width, pictureSize.height * 1.5), CV_8UC1);
+                            yuv.put(0, 0, data);
 
-                    Mat mat = new Mat(new Size(pictureSize.width, pictureSize.height), CvType.CV_8UC4);
-                    Imgproc.cvtColor(yuv, mat, Imgproc.COLOR_YUV2BGR_NV21, 4);
-                    yuv.release();
+                            mat = new Mat(new Size(pictureSize.width, pictureSize.height), CvType.CV_8UC4);
+                            Imgproc.cvtColor(yuv, mat, Imgproc.COLOR_YUV2BGR_NV21, 4);
+                            yuv.release();
+
+                            largestQuad = ScanUtils.detectLargestQuadrilateral(mat);
+                        }
+                    });
+                    clearAndInvalidateCanvas();
 
                     Size originalPreviewSize = mat.size();
                     int originalPreviewArea = mat.rows() * mat.cols();
-
-                    Quadrilateral largestQuad = ScanUtils.detectLargestQuadrilateral(mat);
-                    clearAndInvalidateCanvas();
-
                     mat.release();
 
                     if (null != largestQuad) {

@@ -62,7 +62,6 @@ import static com.adityaarora.liveedgedetection.constants.ScanConstants.MIME_TYP
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SHOW_MANUAL_MODE_INTERVAL;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.CAPTURING_IMAGE;
-import static com.adityaarora.liveedgedetection.enums.ScanHint.MANUAL_MODE;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.NO_MESSAGE;
 
 /**
@@ -78,6 +77,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private FrameLayout cameraPreviewLayout;
     private ScanSurfaceView mImageSurfaceView;
     private boolean isPermissionNotGranted;
+    private boolean flashIsEnable = false;
     private static final String mOpenCvLibrary = "opencv_java3";
     private static ProgressDialogFragment progressDialogFragment;
     private TextView captureHintText;
@@ -95,6 +95,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private ImageButton openFileBtn;
     private ImageButton captureBtn;
     private ImageButton switchModeBtn;
+    private ImageButton switchFlashBtn;
     private LimitedArea limitedArea;
 
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -131,6 +132,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         limitedArea = findViewById(R.id.limited_area);
         switchModeBtn = findViewById(R.id.switch_mode);
         switchModeBtn.setOnClickListener(onClickListener);
+        switchFlashBtn = findViewById(R.id.flash);
+        switchFlashBtn.setOnClickListener(onClickListener);
 
         cropAcceptBtn.setOnClickListener(this);
         cropRejectBtn.setOnClickListener(new View.OnClickListener() {
@@ -206,6 +209,10 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                     showManualMode();
                 }
             }
+            else if (view.getId() == R.id.flash) {
+                flashIsEnable = !flashIsEnable;
+                mImageSurfaceView.setFlash(flashIsEnable);
+            }
             else if (view.getId() == R.id.back_btn) {
                 finish();
             }
@@ -242,7 +249,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
     private void checkCameraPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-            || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             isPermissionNotGranted = true;
             ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.CAMERA,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE }, MY_PERMISSIONS_REQUEST);

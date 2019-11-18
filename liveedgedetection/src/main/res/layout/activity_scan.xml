@@ -58,7 +58,17 @@
         android:padding="10dp"
         android:layout_gravity="right"
         android:layout_margin="20dp"
-        android:visibility="gone"/>
+        android:visibility="visible" />
+
+    <ImageButton
+        android:id="@+id/flash"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_flash"
+        android:background="@drawable/round_button"
+        android:padding="10dp"
+        android:layout_gravity="left"
+        android:layout_margin="20dp"/>
 
     <ImageView
         android:id="@+id/image"

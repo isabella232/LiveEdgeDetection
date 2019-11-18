@@ -23,11 +23,13 @@ import com.adityaarora.liveedgedetection.view.LimitedArea;
 import com.adityaarora.liveedgedetection.view.Quadrilateral;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
@@ -48,13 +50,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.BACKGROUND_THRESHOLD;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_FOLDER;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_NAME;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PHOTO_QUALITY;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SCHEME;
 import static org.opencv.core.CvType.CV_8UC1;
-import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
-import static org.opencv.imgproc.Imgproc.THRESH_OTSU;
+import static org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_MEAN_C;
+import static org.opencv.imgproc.Imgproc.THRESH_BINARY_INV;
 
 /**
  * This class provides utilities for camera.
@@ -313,42 +316,29 @@ public class ScanUtils {
         return previous[1];
     }
 
-    private static int threshold = 0;
-    private static int tentative = 0;
-
     public static Quadrilateral detectLargestQuadrilateral(Mat mat) {
         Mat mGrayMat = new Mat(mat.rows(), mat.cols(), CV_8UC1);
         Mat dst = new Mat(mat.rows(), mat.cols(), CV_8UC1);
-
-//        double[] colorsCenter = mat.get(mat.height() / 2, mat.width() / 2);
-//        double avgCenter = (colorsCenter[0] + colorsCenter[1] + colorsCenter[2]) / 3;
-//        double avgCorner = getAvgCorner(mat);
-//
-//        if (avgCorner >= BACKGROUND_THRESHOLD) {
-//            // Sfondo chiaro
-//            Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2HSV, 4);
-//            List<Mat> mats = new ArrayList<>();
-//            Core.split(mGrayMat, mats);
-//            mGrayMat = mats.get(1);
-////                Imgproc.medianBlur(mGrayMat, mGrayMat, 1);
-//            Imgproc.threshold(mGrayMat, dst, threshold, 255, THRESH_BINARY_INV);
-//        }
-//        else {
-//            // Sfondo scuro
-//            Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2GRAY, 4);
-//            Imgproc.threshold(mGrayMat, dst, 150, 255, THRESH_BINARY + THRESH_OTSU);
-//        }
-//        if (tentative > 2) {
-//            threshold++;
-//            tentative = 0;
-//        }
-//        tentative++;
-
         Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2GRAY, 4);
-        Imgproc.threshold(mGrayMat, dst, 150, 255, THRESH_BINARY + THRESH_OTSU);
+        // Dilatazione per sfondo scuro
+        int iterations = 1;
+
+        double avgCorner = getAvgCorner(mat);
+        if (avgCorner >= BACKGROUND_THRESHOLD) {
+            // Dilatazione per sfondo chiaro
+            iterations = 21;
+        }
+
+        Imgproc.bilateralFilter(mGrayMat, dst, 9, 75, 75);
+        Imgproc.adaptiveThreshold(dst, dst, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 115, 4);
+        int border = 3;
+        Core.copyMakeBorder(dst, dst, border, border, border, border, Core.BORDER_REFLECT_101);
+        Imgproc.Canny(dst, dst, 200, 250);
+        Imgproc.dilate(dst, dst, new Mat(), new Point(-1, -1), iterations);
 
         List<MatOfPoint> largestContour = findLargestContour(dst);
         if (null != largestContour) {
+            Imgproc.drawContours(dst, largestContour, -1, new Scalar(0, 0, 255), 3);
             Quadrilateral mLargestRect = findQuadrilateral(largestContour);
             if (mLargestRect != null) {
                 mGrayMat.release();
@@ -360,7 +350,6 @@ public class ScanUtils {
     }
 
     public static double getMaxCosine(double maxCosine, Point[] approxPoints) {
-        Log.i(TAG, "ANGLES ARE:");
         for (int i = 2; i < 5; i++) {
             double cosine = Math.abs(angle(approxPoints[i % 4], approxPoints[i - 2], approxPoints[i - 1]));
             Log.i(TAG, String.valueOf(cosine));
@@ -412,11 +401,19 @@ public class ScanUtils {
         Mat mHierarchy = new Mat();
         List<MatOfPoint> mContourList = new ArrayList<>();
         //finding contours
-        Imgproc.findContours(inputMat, mContourList, mHierarchy, Imgproc.RETR_EXTERNAL,
-                Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(inputMat, mContourList, mHierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
         Mat mContoursMat = new Mat();
         mContoursMat.create(inputMat.rows(), inputMat.cols(), CvType.CV_8U);
+
+        if (mContourList != null)
+        {
+            for (int i = 0; i < mContourList.size(); i++)
+            {
+                Imgproc.drawContours(inputMat, mContourList, i, new Scalar(255, 0, 0), -1);
+            }
+
+        }
 
         if (mContourList.size() != 0) {
             Collections.sort(mContourList, new Comparator<MatOfPoint>() {

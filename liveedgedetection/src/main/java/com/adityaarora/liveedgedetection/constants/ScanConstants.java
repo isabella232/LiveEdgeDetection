@@ -29,7 +29,7 @@ public class ScanConstants {
     /**
      * Intervallo per acquisizione del frame
      */
-    public static final int INTERVAL_FRAME = 450;
+    public static final int INTERVAL_FRAME = 700;
 
     /**
      * Soglia minima dello sfondo
