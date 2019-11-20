@@ -57,8 +57,6 @@ import static com.adityaarora.liveedgedetection.constants.ScanConstants.PHOTO_QU
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SCHEME;
 import static org.opencv.core.CvType.CV_8UC1;
 import static org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_MEAN_C;
-import static org.opencv.imgproc.Imgproc.MORPH_CLOSE;
-import static org.opencv.imgproc.Imgproc.MORPH_RECT;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY_INV;
 
 /**

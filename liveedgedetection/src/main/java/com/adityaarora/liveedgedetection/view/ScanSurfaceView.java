@@ -144,7 +144,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
     public void setFlash(boolean isEnable) {
         Camera.Parameters cameraParams = camera.getParameters();
-        cameraParams.setFlashMode(isEnable ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_ON);
+        cameraParams.setFlashMode(isEnable ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF);
         camera.setParameters(cameraParams);
     }
 
@@ -179,6 +179,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     }
 
     public void surfaceDestroyed() {
+        Log.i(TAG, "surfaceDestroyed() called");
         stopPreviewAndFreeCamera();
     }
 
@@ -234,7 +235,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                     int originalPreviewArea = mat.rows() * mat.cols();
                     mat.release();
 
-                    if (null != largestQuad) {
+                    if (largestQuad != null) {
                         drawLargestRect(largestQuad.contour, largestQuad.points, originalPreviewSize, originalPreviewArea);
                     }
                     else {
@@ -255,9 +256,6 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         float previewWidth = (float) stdSize.height;
         float previewHeight = (float) stdSize.width;
 
-        Log.i(TAG, "previewWidth: " + String.valueOf(previewWidth));
-        Log.i(TAG, "previewHeight: " + String.valueOf(previewHeight));
-
         //Points are drawn in anticlockwise direction
         path.moveTo(previewWidth - (float) points[0].y, (float) points[0].x);
         path.lineTo(previewWidth - (float) points[1].y, (float) points[1].x);
@@ -266,7 +264,6 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         path.close();
 
         double area = Math.abs(Imgproc.contourArea(approx));
-        Log.i(TAG, "Contour Area: " + String.valueOf(area));
 
         PathShape newBox = new PathShape(path, previewWidth, previewHeight);
         Paint paint = new Paint();
@@ -281,13 +278,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         //Width calculated on X axis
         double resultWidth = points[3].y - points[0].y;
         double bottomWidth = points[2].y - points[1].y;
-        if (bottomWidth > resultWidth)
-            resultWidth = bottomWidth;
-
-        Log.i(TAG, "previewWidth: " + previewWidth);
-        Log.i(TAG, "previewHeight: " + previewHeight);
-        Log.i(TAG, "resultWidth: " + resultWidth);
-        Log.i(TAG, "resultHeight: " + resultHeight);
+        if (bottomWidth > resultWidth) resultWidth = bottomWidth;
 
         ImageDetectionProperties imgDetectionPropsObj
                 = new ImageDetectionProperties(previewWidth, previewHeight, resultWidth, resultHeight,
@@ -518,8 +509,6 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                     previewWidth = previewSize.height;
                     previewHeight = previewSize.width;
                 }
-
-                Log.d(TAG, "previewWidth:" + previewWidth + " previewHeight:" + previewHeight);
             }
 
             int nW;
@@ -537,7 +526,8 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                 nH = (int) (height * scale);
                 top = 0;
                 left = (width - scaledChildWidth) / 2;
-            } else {
+            }
+            else {
                 Log.d(TAG, "center vertically");
                 int scaledChildHeight = (int) ((previewHeight * width / previewWidth) * scale);
                 nW = (int) (width * scale);

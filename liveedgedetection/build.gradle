@@ -2,18 +2,15 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 group = 'com.github.adityaarora1'
+
 android {
     compileSdkVersion 26
-
     packageBuildConfig false
-
-
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         ndk {
             moduleName = "liveedgedetection"
@@ -21,7 +18,6 @@ android {
 //            abiFilters 'arm64-v8a', 'armeabi', 'armeabi-v7a', 'mips', 'mips64', 'x86', 'x86_64'
         }
     }
-
     buildTypes {
         release {
             minifyEnabled false

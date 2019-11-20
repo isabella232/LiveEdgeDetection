@@ -86,16 +86,10 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     public final static Stack<PolygonPoints> allDraggedPointsStack = new Stack<>();
     private PolygonView polygonView;
     private ImageView cropImageView;
-    private View cropAcceptBtn;
-    private View cropRejectBtn;
     private Bitmap copyBitmap;
     private FrameLayout cropLayout;
-
-    private ImageButton backBtn;
-    private ImageButton openFileBtn;
     private ImageButton captureBtn;
     private ImageButton switchModeBtn;
-    private ImageButton switchFlashBtn;
     private LimitedArea limitedArea;
 
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -120,20 +114,21 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         captureHintText = findViewById(R.id.capture_hint_text);
         polygonView = findViewById(R.id.polygon_view);
         cropImageView = findViewById(R.id.crop_image_view);
-        cropAcceptBtn = findViewById(R.id.crop_accept_btn);
-        cropRejectBtn = findViewById(R.id.crop_reject_btn);
         cropLayout = findViewById(R.id.crop_layout);
-        openFileBtn = findViewById(R.id.open_file_btn);
-        openFileBtn.setOnClickListener(onClickListener);
-        backBtn = findViewById(R.id.back_btn);
-        backBtn.setOnClickListener(onClickListener);
         captureBtn = findViewById(R.id.capture_btn);
         captureBtn.setOnClickListener(onClickListener);
         limitedArea = findViewById(R.id.limited_area);
         switchModeBtn = findViewById(R.id.switch_mode);
         switchModeBtn.setOnClickListener(onClickListener);
-        switchFlashBtn = findViewById(R.id.flash);
+
+        View cropAcceptBtn = findViewById(R.id.crop_accept_btn);
+        View cropRejectBtn = findViewById(R.id.crop_reject_btn);
+        ImageButton switchFlashBtn = findViewById(R.id.flash);
         switchFlashBtn.setOnClickListener(onClickListener);
+        ImageButton openFileBtn = findViewById(R.id.open_file_btn);
+        openFileBtn.setOnClickListener(onClickListener);
+        ImageButton backBtn = findViewById(R.id.back_btn);
+        backBtn.setOnClickListener(onClickListener);
 
         cropAcceptBtn.setOnClickListener(this);
         cropRejectBtn.setOnClickListener(new View.OnClickListener() {
