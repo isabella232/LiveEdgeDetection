@@ -229,12 +229,12 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 }
                 else {
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedFile);
-                    onPictureClicked(bitmap);
+                    onPictureClicked(ScanUtils.modifyOrientation(getApplicationContext(), bitmap, selectedFile));
                     displayHint(NO_MESSAGE);
                 }
             }
             catch (IOException e) {
-                Log.e(TAG, "onActivityResult: ", e);
+                Log.e(TAG, e.getMessage(), e);
             }
         }
         else {
