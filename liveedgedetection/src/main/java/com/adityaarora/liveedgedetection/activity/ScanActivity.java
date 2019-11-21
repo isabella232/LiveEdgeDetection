@@ -90,6 +90,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private FrameLayout cropLayout;
     private ImageButton captureBtn;
     private ImageButton switchModeBtn;
+    private ImageButton switchFlashBtn;
     private LimitedArea limitedArea;
 
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -120,11 +121,11 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         limitedArea = findViewById(R.id.limited_area);
         switchModeBtn = findViewById(R.id.switch_mode);
         switchModeBtn.setOnClickListener(onClickListener);
+        switchFlashBtn = findViewById(R.id.flash);
+        switchFlashBtn.setOnClickListener(onClickListener);
 
         View cropAcceptBtn = findViewById(R.id.crop_accept_btn);
         View cropRejectBtn = findViewById(R.id.crop_reject_btn);
-        ImageButton switchFlashBtn = findViewById(R.id.flash);
-        switchFlashBtn.setOnClickListener(onClickListener);
         ImageButton openFileBtn = findViewById(R.id.open_file_btn);
         openFileBtn.setOnClickListener(onClickListener);
         ImageButton backBtn = findViewById(R.id.back_btn);
@@ -206,6 +207,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             }
             else if (view.getId() == R.id.flash) {
                 flashIsEnable = !flashIsEnable;
+                switchFlashBtn.setImageResource(flashIsEnable ? R.drawable.ic_flash_off : R.drawable.ic_flash);
                 mImageSurfaceView.setFlash(flashIsEnable);
             }
             else if (view.getId() == R.id.back_btn) {

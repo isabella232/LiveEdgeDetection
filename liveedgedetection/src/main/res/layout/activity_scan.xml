@@ -65,7 +65,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_flash"
-        android:background="@drawable/round_button"
+        android:background="@drawable/round_lateral_button"
         android:padding="10dp"
         android:layout_gravity="left"
         android:layout_margin="20dp"/>
