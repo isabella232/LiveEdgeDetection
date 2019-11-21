@@ -332,6 +332,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                 scanHint = ScanHint.ADJUST_ANGLE;
             }
             else if (imgDetectionPropsObj.rotateSmartphone()) {
+                cancelAutoCapture();
                 scanHint = ScanHint.ROTATE;
             }
             else {
@@ -368,13 +369,8 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                 if (Math.round((float) millisUntilFinished / 1000.0f) != secondsLeft) {
                     secondsLeft = Math.round((float) millisUntilFinished / 1000.0f);
                 }
-                Log.v(TAG, "" + millisUntilFinished / 1000);
-                switch (secondsLeft) {
-                    case 1:
-                        autoCapture(scanHint);
-                        break;
-                    default:
-                        break;
+                if (secondsLeft == 1) {
+                    autoCapture(scanHint);
                 }
             }
 
@@ -396,8 +392,9 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                 camera.setPreviewCallback(null);
 //                iScanner.displayHint(ScanHint.NO_MESSAGE);
 //                clearAndInvalidateCanvas();
-            } catch (Exception e) {
-                e.printStackTrace();
+            }
+            catch (Exception e) {
+                Log.e(TAG, e.getMessage(), e);
             }
         }
     }

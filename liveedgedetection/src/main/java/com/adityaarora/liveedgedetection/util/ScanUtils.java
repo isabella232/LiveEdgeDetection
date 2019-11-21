@@ -38,11 +38,9 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.SyncFailedException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -382,7 +380,6 @@ public class ScanUtils {
         };
 
         Comparator<Point> diffComparator = new Comparator<Point>() {
-
             @Override
             public int compare(Point lhs, Point rhs) {
                 return Double.valueOf(lhs.y - lhs.x).compareTo(rhs.y - rhs.x);
@@ -509,11 +506,11 @@ public class ScanUtils {
         protected String[] doInBackground(Bitmap... bitmaps) {
 
             String[] returnParams = new String[3];
-            String fileName = IMAGE_NAME + System.currentTimeMillis() / 1000 + ".png";
+            String fileName = IMAGE_NAME + System.currentTimeMillis() / 1000 + ".jpg";
 
             try {
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                bitmaps[0].compress(Bitmap.CompressFormat.PNG, PHOTO_QUALITY, bos);
+                bitmaps[0].compress(Bitmap.CompressFormat.JPEG, PHOTO_QUALITY, bos);
                 byte[] bitmapdata = bos.toByteArray();
                 ByteArrayInputStream bis = new ByteArrayInputStream(bitmapdata);
                 File unisaluteFolder = new File(context.getExternalFilesDir(null).getPath());
@@ -542,7 +539,7 @@ public class ScanUtils {
                 returnParams[2] = "img";
             }
             catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, e.getMessage(), e);
             }
             return returnParams;
         }
@@ -597,14 +594,8 @@ public class ScanUtils {
                 returnParams[1] = context.getExternalFilesDir(null) + "/" + fileName;
                 returnParams[2] = "pdf";
             }
-            catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            catch (SyncFailedException e) {
-                e.printStackTrace();
-            }
             catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, e.getMessage(), e);
             }
             return returnParams;
         }

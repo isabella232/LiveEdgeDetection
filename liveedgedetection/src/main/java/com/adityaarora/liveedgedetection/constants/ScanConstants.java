@@ -36,7 +36,7 @@ public class ScanConstants {
      */
     public static final int BACKGROUND_THRESHOLD = 155;
     public static final int HIGHER_SAMPLING_THRESHOLD = 2200;
-    public static final int PHOTO_QUALITY = 90;
+    public static final int PHOTO_QUALITY = 80;
 
     /**
      * Intervallo per visualizzare la modalità manuale
