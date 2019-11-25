@@ -42,4 +42,7 @@ public class ScanConstants {
      * Intervallo per visualizzare la modalità manuale
      */
     public static final int SHOW_MANUAL_MODE_INTERVAL = 5000;
+
+    public static final String IMG_TYPE = "img";
+    public static final String PDF_TYPE = "pdf";
 }

@@ -460,7 +460,6 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                     isCapturing = false;
                 }
             }, 3000);
-
         }
     };
 
