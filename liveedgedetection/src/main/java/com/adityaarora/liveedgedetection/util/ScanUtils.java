@@ -54,6 +54,9 @@ import java.util.Map;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.BACKGROUND_THRESHOLD;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_FOLDER;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_NAME;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMG_TYPE;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_TYPE;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PHOTO_QUALITY;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SCHEME;
 import static org.opencv.core.CvType.CV_8UC1;
@@ -537,9 +540,8 @@ public class ScanUtils {
                 fos.close();
                 bis.close();
 
-                returnParams[0] = unisaluteFolder.getAbsolutePath();
-                returnParams[1] = context.getExternalFilesDir(null) + "/" + fileName;
-                returnParams[2] = "img";
+                returnParams[0] = context.getExternalFilesDir(null) + "/" + fileName;
+                returnParams[1] = IMG_TYPE;
             }
             catch (IOException e) {
                 Log.e(TAG, e.getMessage(), e);
@@ -593,9 +595,8 @@ public class ScanUtils {
                 fos.close();
                 bis.close();
 
-                returnParams[0] = unisaluteFolder.getAbsolutePath();
-                returnParams[1] = context.getExternalFilesDir(null) + "/" + fileName;
-                returnParams[2] = "pdf";
+                returnParams[0] = context.getExternalFilesDir(null) + "/" + fileName;
+                returnParams[1] = PDF_TYPE;
             }
             catch (IOException e) {
                 Log.e(TAG, e.getMessage(), e);
@@ -819,7 +820,9 @@ public class ScanUtils {
     }
 
     public static Bitmap modifyOrientation(Context context, Bitmap bitmap, Uri uri) throws IOException {
-        ExifInterface ei = new ExifInterface(getRealPathFromURI(context, uri));
+        String realPath = getRealPathFromURI(context, uri);
+        if (realPath == null) return null;
+        ExifInterface ei = new ExifInterface(realPath);
         int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
 
         switch (orientation) {
@@ -851,21 +854,27 @@ public class ScanUtils {
     }
 
     private static String getRealPathFromURI(Context context, Uri uri) {
-        String filePath = "";
-        String wholeID = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-            wholeID = DocumentsContract.getDocumentId(uri);
+        try {
+            String filePath = "";
+            String wholeID = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                wholeID = DocumentsContract.getDocumentId(uri);
+            }
+            String id = wholeID.split(":")[1];
+            String[] column = {MediaStore.Images.Media.DATA};
+            String sel = MediaStore.Images.Media._ID + "=?";
+            Cursor cursor = context.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    column, sel, new String[]{id}, null);
+            int columnIndex = cursor.getColumnIndex(column[0]);
+            if (cursor.moveToFirst()) {
+                filePath = cursor.getString(columnIndex);
+            }
+            cursor.close();
+            return filePath;
         }
-        String id = wholeID.split(":")[1];
-        String[] column = {MediaStore.Images.Media.DATA};
-        String sel = MediaStore.Images.Media._ID + "=?";
-        Cursor cursor = context.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                column, sel, new String[]{id}, null);
-        int columnIndex = cursor.getColumnIndex(column[0]);
-        if (cursor.moveToFirst()) {
-            filePath = cursor.getString(columnIndex);
+        catch (ArrayIndexOutOfBoundsException e) {
+            Log.e(TAG, "Immagine non presente nel database");
+            return null;
         }
-        cursor.close();
-        return filePath;
     }
 }

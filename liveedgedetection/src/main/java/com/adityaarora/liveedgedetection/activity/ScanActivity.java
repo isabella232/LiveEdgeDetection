@@ -226,12 +226,19 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 ContentResolver cR = getApplicationContext().getContentResolver();
                 MimeTypeMap mime = MimeTypeMap.getSingleton();
                 String type = mime.getExtensionFromMimeType(cR.getType(selectedFile));
+                Log.i(TAG, "Caricato file da filesystem di tipo: " + type);
                 if (type.equals(PDF_EXT)) {
                     ScanUtils.saveToInternalMemory(getApplicationContext(), selectedFile, this);
                 }
                 else {
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedFile);
-                    onPictureClicked(ScanUtils.modifyOrientation(getApplicationContext(), bitmap, selectedFile));
+                    Bitmap rotatedBitmap = ScanUtils.modifyOrientation(getApplicationContext(), bitmap, selectedFile);
+                    if (rotatedBitmap == null) {
+                        onPictureClicked(bitmap);
+                    }
+                    else {
+                        onPictureClicked(rotatedBitmap);
+                    }
                     displayHint(NO_MESSAGE);
                 }
             }
@@ -351,52 +358,47 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             Utils.bitmapToMat(copyBitmap, originalMat);
             ArrayList<PointF> points;
             Map<Integer, PointF> pointFs = new HashMap<>();
-            try {
-                Quadrilateral quad = ScanUtils.detectLargestQuadrilateral(originalMat);
-                if (mImageSurfaceView.getAcquisitionMode() != ScanSurfaceView.AcquisitionMode.MANUAL_MODE) {
-                    if (null != quad) {
-                        double resultArea = Math.abs(Imgproc.contourArea(quad.contour));
-                        double previewArea = originalMat.rows() * originalMat.cols();
-                        if (resultArea > previewArea * 0.08) {
-                            points = new ArrayList<>();
-                            points.add(new PointF((float) quad.points[0].x, (float) quad.points[0].y));
-                            points.add(new PointF((float) quad.points[1].x, (float) quad.points[1].y));
-                            points.add(new PointF((float) quad.points[3].x, (float) quad.points[3].y));
-                            points.add(new PointF((float) quad.points[2].x, (float) quad.points[2].y));
-                        }
-                        else {
-                            points = ScanUtils.getPolygonDefaultPoints(copyBitmap);
-                        }
-
+            Quadrilateral quad = ScanUtils.detectLargestQuadrilateral(originalMat);
+            if (mImageSurfaceView.getAcquisitionMode() != ScanSurfaceView.AcquisitionMode.MANUAL_MODE) {
+                if (null != quad) {
+                    double resultArea = Math.abs(Imgproc.contourArea(quad.contour));
+                    double previewArea = originalMat.rows() * originalMat.cols();
+                    if (resultArea > previewArea * 0.08) {
+                        points = new ArrayList<>();
+                        points.add(new PointF((float) quad.points[0].x, (float) quad.points[0].y));
+                        points.add(new PointF((float) quad.points[1].x, (float) quad.points[1].y));
+                        points.add(new PointF((float) quad.points[3].x, (float) quad.points[3].y));
+                        points.add(new PointF((float) quad.points[2].x, (float) quad.points[2].y));
                     }
                     else {
                         points = ScanUtils.getPolygonDefaultPoints(copyBitmap);
                     }
+
                 }
                 else {
-                    points = ScanUtils.getPolygonFromLimitedArea(limitedArea);
+                    points = ScanUtils.getPolygonDefaultPoints(copyBitmap);
                 }
-
-                int index = -1;
-                for (PointF pointF : points) {
-                    pointFs.put(++index, pointF);
-                }
-
-                polygonView.setPoints(pointFs);
-                int padding = (int) getResources().getDimension(R.dimen.scan_padding);
-                FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(copyBitmap.getWidth() + 2 * padding, copyBitmap.getHeight() + 2 * padding);
-                layoutParams.gravity = Gravity.CENTER;
-                polygonView.setLayoutParams(layoutParams);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                    TransitionManager.beginDelayedTransition(containerScan);
-                cropLayout.setVisibility(View.VISIBLE);
-
-                cropImageView.setImageBitmap(copyBitmap);
-                cropImageView.setScaleType(ImageView.ScaleType.FIT_XY);
             }
-            catch (Exception e) {
-                Log.e(TAG, e.getMessage(), e);
+            else {
+                points = ScanUtils.getPolygonFromLimitedArea(limitedArea);
             }
+
+            int index = -1;
+            for (PointF pointF : points) {
+                pointFs.put(++index, pointF);
+            }
+
+            polygonView.setPoints(pointFs);
+            int padding = (int) getResources().getDimension(R.dimen.scan_padding);
+            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(copyBitmap.getWidth() + 2 * padding, copyBitmap.getHeight() + 2 * padding);
+            layoutParams.gravity = Gravity.CENTER;
+            polygonView.setLayoutParams(layoutParams);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+                TransitionManager.beginDelayedTransition(containerScan);
+            cropLayout.setVisibility(View.VISIBLE);
+
+            cropImageView.setImageBitmap(copyBitmap);
+            cropImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         }
         catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
@@ -441,8 +443,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     @Override
     public void onCompleted(String[] paths) {
         setResult(Activity.RESULT_OK, new Intent()
-                .putExtra(ScanConstants.PATH_RESULT, paths[1])
-                .putExtra(ScanConstants.TYPE_RESULT, paths[2])
+                .putExtra(ScanConstants.PATH_RESULT, paths[0])
+                .putExtra(ScanConstants.TYPE_RESULT, paths[1])
                 .putExtra(ScanConstants.ACQUISITION_MODE, mImageSurfaceView.getAcquisitionMode().toString()));
         finish();
     }
