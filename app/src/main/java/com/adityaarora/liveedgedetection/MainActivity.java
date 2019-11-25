@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE) {
-            if(resultCode == Activity.RESULT_OK) {
+            if (resultCode == Activity.RESULT_OK) {
                 if (null != data && null != data.getExtras()) {
                     try {
                         JSONObject json = new JSONObject();
@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
                         json.put(ScanConstants.PATH_RESULT, pathFile);
                         json.put(ScanConstants.TYPE_RESULT, typeFile);
                         json.put(ScanConstants.ACQUISITION_MODE, acquisitionMode);
+                        Log.d(TAG, "onActivityResult: " + json.toString());
                         Bitmap baseBitmap = ScanUtils.decodeBitmapFromFile(pathFile);
                         scannedImageView.setImageBitmap(baseBitmap);
                     }
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-            else if(resultCode == Activity.RESULT_CANCELED) {
+            else if (resultCode == Activity.RESULT_CANCELED) {
                 finish();
             }
         }
