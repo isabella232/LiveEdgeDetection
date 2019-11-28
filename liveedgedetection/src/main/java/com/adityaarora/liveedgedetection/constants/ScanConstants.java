@@ -21,7 +21,6 @@ public class ScanConstants {
      * Intestazione del nome dell'immagine croppata e salvata
      */
     public static final String IMAGE_NAME = "crop_";
-    public static final String IMAGE_FOLDER = "/Unisalute"; // TODO Sostituire con percorso reale quando verrà implementata la funziionalità
     public static final String SCHEME = "content";
     public static final String PDF_EXT = "pdf";
     public static final String[] MIME_TYPES = { "image/*", "application/pdf" };

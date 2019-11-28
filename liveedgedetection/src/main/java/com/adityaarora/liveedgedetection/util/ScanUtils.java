@@ -52,20 +52,14 @@ import java.util.List;
 import java.util.Map;
 
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.BACKGROUND_THRESHOLD;
-import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_FOLDER;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMAGE_NAME;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.IMG_TYPE;
-import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_TYPE;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PHOTO_QUALITY;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SCHEME;
 import static org.opencv.core.CvType.CV_8UC1;
 import static org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_MEAN_C;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY_INV;
-
-/**
- * This class provides utilities for camera.
- */
 
 public class ScanUtils {
 
@@ -357,7 +351,7 @@ public class ScanUtils {
         }
     }
 
-    public static double getMaxCosine(double maxCosine, Point[] approxPoints) {
+    static double getMaxCosine(double maxCosine, Point[] approxPoints) {
         for (int i = 2; i < 5; i++) {
             double cosine = Math.abs(angle(approxPoints[i % 4], approxPoints[i - 2], approxPoints[i - 1]));
             Log.i(TAG, String.valueOf(cosine));
@@ -610,7 +604,7 @@ public class ScanUtils {
         }
     }
 
-    public static String getFileName(Context context, Uri uri) {
+    private static String getFileName(Context context, Uri uri) {
         String result = null;
         if (uri.getScheme().equals(SCHEME)) {
             Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
@@ -638,9 +632,9 @@ public class ScanUtils {
      *
      * @return pathArray
      */
-    public static String[] getFilesList() {
+    public static String[] getFilesList(Context context) {
         String[] pathArray = null;
-        final File imagesFolder = new File(IMAGE_FOLDER);
+        final File imagesFolder = new File(context.getExternalFilesDir(null).getPath());
         if (imagesFolder.listFiles() != null) {
             File[] paths = imagesFolder.listFiles();
             pathArray = new String[paths.length];
@@ -659,9 +653,7 @@ public class ScanUtils {
     }
 
     private static File getBaseDirectoryFromPathString(String mPath, Context mContext) {
-
         ContextWrapper mContextWrapper = new ContextWrapper(mContext);
-
         return mContextWrapper.getDir(mPath, Context.MODE_PRIVATE);
     }
 
@@ -683,7 +675,6 @@ public class ScanUtils {
         float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
         return Math.round(px);
     }
-
 
     public static Bitmap decodeBitmapFromByteArray(byte[] data, int reqWidth, int reqHeight) {
         // Raw height and width of image
@@ -873,7 +864,7 @@ public class ScanUtils {
             return filePath;
         }
         catch (ArrayIndexOutOfBoundsException e) {
-            Log.e(TAG, "Immagine non presente nel database");
+            Log.e(TAG, "Immagine non presente nel MediaStore");
             return null;
         }
     }

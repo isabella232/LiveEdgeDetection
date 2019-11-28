@@ -32,12 +32,11 @@ public class MainActivity extends AppCompatActivity {
                 startScan();
             }
         });
-//        startScan();
 
-        String[] paths = ScanUtils.getFilesList();
+        String[] paths = ScanUtils.getFilesList(getApplicationContext());
         if (paths != null) {
             for (String path : paths) {
-                Log.d(TAG, "onCreate: " + path);
+                Log.d(TAG, "Path: " + path);
             }
         }
     }
