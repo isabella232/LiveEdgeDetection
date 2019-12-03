@@ -56,22 +56,22 @@
         android:layout_margin="20dp">
 
         <ImageButton
+            android:id="@+id/flash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_flash"
+            android:background="@drawable/round_lateral_button"
+            android:padding="10dp"/>
+
+        <ImageButton
             android:id="@+id/switch_mode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_hand"
             android:background="@drawable/round_button"
             android:padding="10dp"
-            android:visibility="visible" />
-
-        <ImageButton
-            android:id="@+id/flash"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_flash"
-            android:background="@drawable/round_lateral_button"
-            android:padding="10dp"
-            android:layout_below="@id/switch_mode"
+            android:visibility="gone"
+            android:layout_below="@id/flash"
             android:layout_marginTop="10dp"/>
 
     </RelativeLayout>
