@@ -251,6 +251,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     };
 
     private void drawLargestRect(MatOfPoint2f approx, Point[] points, Size stdSize, int previewArea) {
+        processingThread.removeCallbacksAndMessages(null);
         Path path = new Path();
         // ATTENTION: axis are swapped
         float previewWidth = (float) stdSize.height;
