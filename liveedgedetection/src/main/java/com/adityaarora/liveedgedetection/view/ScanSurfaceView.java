@@ -251,7 +251,6 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     };
 
     private void drawLargestRect(MatOfPoint2f approx, Point[] points, Size stdSize, int previewArea) {
-        processingThread.removeCallbacksAndMessages(null);
         Path path = new Path();
         // ATTENTION: axis are swapped
         float previewWidth = (float) stdSize.height;
@@ -443,6 +442,8 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     private final Camera.PictureCallback pictureCallback = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
+            processingThread.removeCallbacksAndMessages(null);
+            largestQuad = null;
             camera.stopPreview();
             iScanner.displayHint(ScanHint.NO_MESSAGE);
             clearAndInvalidateCanvas();
