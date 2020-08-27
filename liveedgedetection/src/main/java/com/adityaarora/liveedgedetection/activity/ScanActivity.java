@@ -358,7 +358,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             Utils.bitmapToMat(copyBitmap, originalMat);
             ArrayList<PointF> points;
             Map<Integer, PointF> pointFs = new HashMap<>();
-            Quadrilateral quad = ScanUtils.detectLargestQuadrilateral(originalMat);
+            Quadrilateral quad = ScanUtils.detectLargestQuadrilateral(originalMat, getApplicationContext());
             if (mImageSurfaceView.getAcquisitionMode() != ScanSurfaceView.AcquisitionMode.MANUAL_MODE) {
                 if (null != quad) {
                     double resultArea = Math.abs(Imgproc.contourArea(quad.contour));
