@@ -314,27 +314,26 @@ public class ScanUtils {
         return previous[1];
     }
 
-    public static Quadrilateral detectLargestQuadrilateral(Mat mat, Context context) {
+    public static Quadrilateral detectLargestQuadrilateral(Mat mat) {
         try {
             Mat mGrayMat = new Mat(mat.rows(), mat.cols(), CV_8UC1);
             Mat dst = new Mat(mat.rows(), mat.cols(), CV_8UC1);
             Imgproc.cvtColor(mat, mGrayMat, Imgproc.COLOR_BGR2GRAY, 4);
+            // Dilatazione per sfondo scuro
+            int iterations = 1;
+
+            double avgCorner = getAvgCorner(mat);
+            if (avgCorner >= BACKGROUND_THRESHOLD) {
+                // Dilatazione per sfondo chiaro
+                iterations = 23;
+            }
 
             Imgproc.bilateralFilter(mGrayMat, dst, 11, 11, 11);
             Imgproc.adaptiveThreshold(dst, dst, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 115, 4);
             int border = 3;
             Core.copyMakeBorder(dst, dst, border, border, border, border, Core.BORDER_REFLECT_101);
             Imgproc.Canny(dst, dst, 50, 150);
-//            Imgproc.dilate(dst, dst, new Mat(), new Point(-1, -1), iterations);
-
-            Bitmap bitmap = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(dst, bitmap);
-            saveToInternalMemory(context, bitmap, new OnSaveListener() {
-                @Override
-                public void onCompleted(String[] strings) {
-                    Log.d(TAG, "onCompleted() called with: strings = [" + strings + "]");
-                }
-            });
+            Imgproc.dilate(dst, dst, new Mat(), new Point(-1, -1), iterations);
 
             List<MatOfPoint> largestContour = findLargestContour(dst);
             if (null != largestContour) {
@@ -342,7 +341,7 @@ public class ScanUtils {
                 if (mLargestRect != null) {
                     mGrayMat.release();
                     dst.release();
-                    return null;
+                    return mLargestRect;
                 }
             }
             return null;

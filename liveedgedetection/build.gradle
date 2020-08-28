@@ -30,6 +30,9 @@ android {
             path 'src/main/Android.mk'
         }
     }
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {

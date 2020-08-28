@@ -225,7 +225,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                                 Imgproc.cvtColor(yuv, mat, Imgproc.COLOR_YUV2BGR_NV21, 4);
                                 yuv.release();
 
-                                largestQuad = ScanUtils.detectLargestQuadrilateral(mat, context);
+                                largestQuad = ScanUtils.detectLargestQuadrilateral(mat);
                             }
                         }
                     });
