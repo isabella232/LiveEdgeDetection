@@ -58,9 +58,14 @@ import java.util.Map;
 import java.util.Stack;
 
 import static android.view.View.GONE;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.COMPRESS_ENABLED;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.LIVE_DETECTION_ENABLED;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.MIME_TYPES;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SHOW_MANUAL_MODE_INTERVAL;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.START_COMPRESS;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.START_LIVE_DETECTION;
+import static com.adityaarora.liveedgedetection.constants.ScanConstants.WHICH_API;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.CAPTURING_IMAGE;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.NO_MESSAGE;
 
@@ -70,20 +75,17 @@ import static com.adityaarora.liveedgedetection.enums.ScanHint.NO_MESSAGE;
 public class ScanActivity extends AppCompatActivity implements IScanner, View.OnClickListener, ScanUtils.OnSaveListener {
 
     private static final String TAG = ScanActivity.class.getSimpleName();
+
     private static final int MY_PERMISSIONS_REQUEST = 101;
     private static final int SELECTED_FILE_CODE = 102;
+    private static final String mOpenCvLibrary = "opencv_java3";
 
     private ViewGroup containerScan;
     private FrameLayout cameraPreviewLayout;
     private ScanSurfaceView mImageSurfaceView;
-    private boolean isPermissionNotGranted;
-    private boolean flashIsEnable = false;
-    private static final String mOpenCvLibrary = "opencv_java3";
-    private static ProgressDialogFragment progressDialogFragment;
     private TextView captureHintText;
     private LinearLayout captureHintLayout;
 
-    public final static Stack<PolygonPoints> allDraggedPointsStack = new Stack<>();
     private PolygonView polygonView;
     private ImageView cropImageView;
     private Bitmap copyBitmap;
@@ -92,8 +94,12 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private ImageButton switchModeBtn;
     private ImageButton switchFlashBtn;
     private LimitedArea limitedArea;
-
     private Handler handler = new Handler(Looper.getMainLooper());
+
+    private static ProgressDialogFragment progressDialogFragment;
+
+    private boolean isPermissionNotGranted;
+    private boolean flashIsEnable = false;
 
     static {
         System.loadLibrary(mOpenCvLibrary);
@@ -102,10 +108,24 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_scan);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        init();
+        final int action = getIntent().getExtras() != null ? getIntent().getExtras().getInt(WHICH_API) : -1;
+        if (action == START_LIVE_DETECTION) {
+            if (!LIVE_DETECTION_ENABLED) {
+                setResult(ScanConstants.API_NOT_ENABLED);
+                finish();
+            }
+            setContentView(R.layout.activity_scan);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            init();
+        }
+        else if (action == START_COMPRESS) {
+            if (!COMPRESS_ENABLED) {
+                setResult(ScanConstants.API_NOT_ENABLED);
+                finish();
+            }
+            finish();
+        }
     }
 
     private void init() {

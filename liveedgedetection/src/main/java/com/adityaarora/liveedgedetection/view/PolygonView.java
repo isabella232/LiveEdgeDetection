@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 /**
  * This class defines polygon for cropping
@@ -28,6 +29,9 @@ import java.util.Map;
 public class PolygonView extends FrameLayout {
 
     private static final String TAG = PolygonView.class.getSimpleName();
+
+    private static final Stack<PolygonPoints> allDraggedPointsStack = new Stack<>();
+
     private final Context context;
     private Paint paint;
     private ImageView pointer1;
@@ -355,7 +359,7 @@ public class PolygonView extends FrameLayout {
 
                     break;
                 case MotionEvent.ACTION_DOWN:
-                    ScanActivity.allDraggedPointsStack.push(new PolygonPoints(new PointF(pointer1.getX(), pointer1.getY()),
+                    allDraggedPointsStack.push(new PolygonPoints(new PointF(pointer1.getX(), pointer1.getY()),
                             new PointF(pointer2.getX(), pointer2.getY()),
                             new PointF(pointer3.getX(), pointer3.getY()),
                             new PointF(pointer4.getX(), pointer4.getY())));
@@ -377,7 +381,7 @@ public class PolygonView extends FrameLayout {
                         latestPoint2.x = mainPointer2.getX();
                         latestPoint2.y = mainPointer2.getY();
                     } else {
-                        ScanActivity.allDraggedPointsStack.pop();
+                        allDraggedPointsStack.pop();
                         color = getResources().getColor(R.color.crop_color);
                         v.setX(latestPoint.x);
                         v.setY(latestPoint.y);
@@ -448,7 +452,7 @@ public class PolygonView extends FrameLayout {
                     }
                     break;
                 case MotionEvent.ACTION_DOWN:
-                    ScanActivity.allDraggedPointsStack.push(new PolygonPoints(new PointF(pointer1.getX(), pointer1.getY()),
+                    allDraggedPointsStack.push(new PolygonPoints(new PointF(pointer1.getX(), pointer1.getY()),
                             new PointF(pointer2.getX(), pointer2.getY()),
                             new PointF(pointer3.getX(), pointer3.getY()),
                             new PointF(pointer4.getX(), pointer4.getY())));
@@ -464,7 +468,7 @@ public class PolygonView extends FrameLayout {
                         latestPoint.x = v.getX();
                         latestPoint.y = v.getY();
                     } else {
-                        ScanActivity.allDraggedPointsStack.pop();
+                        allDraggedPointsStack.pop();
                         color = getResources().getColor(R.color.crop_color);
                         v.setX(latestPoint.x);
                         v.setY(latestPoint.y);

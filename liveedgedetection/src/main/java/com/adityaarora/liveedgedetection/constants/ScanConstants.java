@@ -44,4 +44,20 @@ public class ScanConstants {
 
     public static final String IMG_TYPE = "img";
     public static final String PDF_TYPE = "pdf";
+
+    public static final int START_LIVE_DETECTION = 103;
+    public static final int START_COMPRESS = 104;
+    public static final int API_NOT_ENABLED = -2;
+
+    /**
+     * Api per live edge detection abilitata/non abilitata a seconda della versione
+     */
+    public static final boolean LIVE_DETECTION_ENABLED = false;
+
+    /**
+     * Api per compressione abilitata/non abilitata a seconda della versione
+     */
+    public static final boolean COMPRESS_ENABLED = true;
+
+    public static final String WHICH_API = "which_api";
 }

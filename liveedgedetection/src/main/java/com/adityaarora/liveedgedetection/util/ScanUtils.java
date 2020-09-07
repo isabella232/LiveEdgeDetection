@@ -492,6 +492,10 @@ public class ScanUtils {
         new SavePdfToSdcard(context, onSaveListener).execute(uri);
     }
 
+    public static void compress(Context context, String path, OnSaveListener onSaveListener) {
+        new Compress(context, onSaveListener).execute(path);
+    }
+
     public static class SaveToSdcard extends AsyncTask<Bitmap, Integer, String[]> {
 
         private Context context;
@@ -601,6 +605,67 @@ public class ScanUtils {
         @Override
         protected void onPostExecute(String[] strings) {
             onSaveListener.onCompleted(strings);
+        }
+    }
+
+    public static class Compress extends AsyncTask<String, Integer, String[]> {
+
+        private Context context;
+        private OnSaveListener onSaveListener;
+
+        Compress(Context context, OnSaveListener onSaveListener) {
+            this.context = context;
+            this.onSaveListener = onSaveListener;
+        }
+
+        @Override
+        protected String[] doInBackground(String... path) {
+
+            String[] returnParams = new String[3];
+            String fileName = IMAGE_NAME + System.currentTimeMillis() / 1000 + ".jpg";
+
+            try {
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                File image = new File(path[0]);
+                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(),bmOptions);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, PHOTO_QUALITY, bos);
+                byte[] bitmapdata = bos.toByteArray();
+                ByteArrayInputStream bis = new ByteArrayInputStream(bitmapdata);
+                File unisaluteFolder = new File(context.getExternalFilesDir(null).getPath());
+                if (!unisaluteFolder.exists()) {
+                    unisaluteFolder.mkdirs();
+                    unisaluteFolder.setReadable(true, false);
+                    unisaluteFolder.setWritable(true, false);
+                    unisaluteFolder.setExecutable(true, false);
+                }
+                FileOutputStream fos = new FileOutputStream(new File(unisaluteFolder.getPath(), fileName));
+                byte[] b = new byte[100*1024];
+                int j;
+
+                while ((j = bis.read(b)) != -1) {
+                    fos.write(b, 0, j);
+                }
+
+                fos.flush();
+                fos.getFD().sync();
+
+                fos.close();
+                bis.close();
+
+                returnParams[0] = context.getExternalFilesDir(null) + "/" + fileName;
+                returnParams[1] = IMG_TYPE;
+            }
+            catch (IOException e) {
+                Log.e(TAG, e.getMessage(), e);
+            }
+            return returnParams;
+        }
+
+        @Override
+        protected void onPostExecute(String[] strings) {
+            Log.d(TAG, "onPostExecute: compress completed");
+//            onSaveListener.onCompleted(strings);
         }
     }
 
