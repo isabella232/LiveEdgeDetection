@@ -33,6 +33,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.adityaarora.liveedgedetection.BuildConfig;
 import com.adityaarora.liveedgedetection.R;
 import com.adityaarora.liveedgedetection.constants.ScanConstants;
 import com.adityaarora.liveedgedetection.enums.ScanHint;
@@ -55,15 +56,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
 
 import static android.view.View.GONE;
-import static com.adityaarora.liveedgedetection.constants.ScanConstants.COMPRESS_ENABLED;
-import static com.adityaarora.liveedgedetection.constants.ScanConstants.LIVE_DETECTION_ENABLED;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.MIME_TYPES;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SHOW_MANUAL_MODE_INTERVAL;
-import static com.adityaarora.liveedgedetection.constants.ScanConstants.START_COMPRESS;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.START_LIVE_DETECTION;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.WHICH_API;
 import static com.adityaarora.liveedgedetection.enums.ScanHint.CAPTURING_IMAGE;
@@ -111,20 +108,13 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
         final int action = getIntent().getExtras() != null ? getIntent().getExtras().getInt(WHICH_API) : -1;
         if (action == START_LIVE_DETECTION) {
-            if (!LIVE_DETECTION_ENABLED) {
+            if (!BuildConfig.LIVE_DETECTION_ENABLED) {
                 setResult(ScanConstants.API_NOT_ENABLED);
                 finish();
             }
             setContentView(R.layout.activity_scan);
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             init();
-        }
-        else if (action == START_COMPRESS) {
-            if (!COMPRESS_ENABLED) {
-                setResult(ScanConstants.API_NOT_ENABLED);
-                finish();
-            }
-            finish();
         }
     }
 
@@ -467,5 +457,10 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 .putExtra(ScanConstants.TYPE_RESULT, paths[1])
                 .putExtra(ScanConstants.ACQUISITION_MODE, mImageSurfaceView.getAcquisitionMode().toString()));
         finish();
+    }
+
+    @Override
+    public void onError(String message) {
+        /* NOOP */
     }
 }

@@ -35,7 +35,7 @@ public class ScanConstants {
      */
     public static final int BACKGROUND_THRESHOLD = 155;
     public static final int HIGHER_SAMPLING_THRESHOLD = 2200;
-    public static final int PHOTO_QUALITY = 80;
+    public static final int PHOTO_QUALITY = 70;
 
     /**
      * Intervallo per visualizzare la modalità manuale
@@ -48,16 +48,5 @@ public class ScanConstants {
     public static final int START_LIVE_DETECTION = 103;
     public static final int START_COMPRESS = 104;
     public static final int API_NOT_ENABLED = -2;
-
-    /**
-     * Api per live edge detection abilitata/non abilitata a seconda della versione
-     */
-    public static final boolean LIVE_DETECTION_ENABLED = false;
-
-    /**
-     * Api per compressione abilitata/non abilitata a seconda della versione
-     */
-    public static final boolean COMPRESS_ENABLED = true;
-
     public static final String WHICH_API = "which_api";
 }

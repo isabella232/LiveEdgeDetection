@@ -22,6 +22,7 @@ import android.util.TypedValue;
 import android.view.Display;
 import android.view.Surface;
 
+import com.adityaarora.liveedgedetection.BuildConfig;
 import com.adityaarora.liveedgedetection.view.LimitedArea;
 import com.adityaarora.liveedgedetection.view.Quadrilateral;
 
@@ -493,6 +494,10 @@ public class ScanUtils {
     }
 
     public static void compress(Context context, String path, OnSaveListener onSaveListener) {
+        if (!BuildConfig.COMPRESS_ENABLED) {
+            onSaveListener.onError("Api non abilitata");
+            return;
+        }
         new Compress(context, onSaveListener).execute(path);
     }
 
@@ -628,7 +633,7 @@ public class ScanUtils {
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 File image = new File(path[0]);
                 BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(),bmOptions);
+                Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(), bmOptions);
                 bitmap.compress(Bitmap.CompressFormat.JPEG, PHOTO_QUALITY, bos);
                 byte[] bitmapdata = bos.toByteArray();
                 ByteArrayInputStream bis = new ByteArrayInputStream(bitmapdata);
@@ -664,8 +669,7 @@ public class ScanUtils {
 
         @Override
         protected void onPostExecute(String[] strings) {
-            Log.d(TAG, "onPostExecute: compress completed");
-//            onSaveListener.onCompleted(strings);
+            onSaveListener.onCompleted(strings);
         }
     }
 
@@ -715,6 +719,7 @@ public class ScanUtils {
      */
     public interface OnSaveListener {
         void onCompleted(String[] strings);
+        void onError(String message);
     }
 
     private static File getBaseDirectoryFromPathString(String mPath, Context mContext) {
