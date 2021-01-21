@@ -42,8 +42,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startScan() {
-        Intent intent = new Intent(this, ScanActivity.class);
-        startActivityForResult(intent, REQUEST_CODE);
+        Intent intent = new Intent(getApplicationContext(), ScanActivity.class);
+        intent.putExtra(ScanConstants.WHICH_API, ScanConstants.START_LIVE_DETECTION);
+        getApplicationContext().startActivity(intent);
     }
 
     private static final String TAG = "MainActivity";

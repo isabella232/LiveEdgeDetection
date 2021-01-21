@@ -28,7 +28,7 @@ public class ScanConstants {
     /**
      * Intervallo per acquisizione del frame
      */
-    public static final int INTERVAL_FRAME = 700;
+    public static final int INTERVAL_FRAME = 500;
 
     /**
      * Soglia minima dello sfondo
@@ -40,7 +40,7 @@ public class ScanConstants {
     /**
      * Intervallo per visualizzare la modalità manuale
      */
-    public static final int SHOW_MANUAL_MODE_INTERVAL = 5000;
+    public static final int SHOW_MANUAL_MODE_INTERVAL = 1;
 
     public static final String IMG_TYPE = "img";
     public static final String PDF_TYPE = "pdf";

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container_scan"
     android:layout_width="match_parent"
@@ -24,7 +25,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|left"
         android:src="@drawable/ic_arrow_left"
-        android:background="@drawable/round_lateral_button"
         android:padding="20dp"
         android:layout_margin="20dp"/>
 
@@ -36,18 +36,7 @@
         android:src="@drawable/ic_camera"
         android:padding="20dp"
         android:layout_margin="20dp"
-        android:background="@drawable/round_button"
         android:visibility="gone"/>
-
-    <ImageButton
-        android:id="@+id/open_file_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
-        android:src="@drawable/ic_file_account_outline"
-        android:background="@drawable/round_lateral_button"
-        android:padding="20dp"
-        android:layout_margin="20dp"/>
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -60,16 +49,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_flash"
-            android:background="@drawable/round_lateral_button"
-            android:padding="10dp"/>
+            android:padding="20dp"/>
 
         <ImageButton
             android:id="@+id/switch_mode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_hand"
-            android:background="@drawable/round_button"
-            android:padding="10dp"
+            android:padding="20dp"
             android:visibility="gone"
             android:layout_below="@id/flash"
             android:layout_marginTop="10dp"/>
@@ -113,24 +100,26 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
 
-            <ImageView
+            <ImageButton
                 android:id="@+id/crop_accept_btn"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
                 android:alpha="0.8"
-                android:src="@drawable/accept" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_check"
+                android:padding="20dp"/>
 
             <View
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.6" />
 
-            <ImageView
+            <ImageButton
                 android:id="@+id/crop_reject_btn"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
                 android:alpha="0.8"
-                android:src="@drawable/reject" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_close"
+                android:padding="20dp"/>
 
             <View
                 android:layout_width="0dp"
@@ -144,8 +133,8 @@
         android:layout_width="wrap_content"
         android:layout_height="46dp"
         android:layout_gravity="center"
-        android:background="@drawable/hint_white"
         android:orientation="vertical"
+        android:background="@color/background_lateral_button"
         android:visibility="gone">
 
         <TextView
@@ -155,11 +144,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:gravity="center"
-            android:paddingBottom="4dp"
-            android:paddingLeft="12dp"
-            android:paddingRight="12dp"
+            android:padding="10dp"
             android:text="@string/frame_document"
-            android:textColor="@color/white"
+            android:textColor="@android:color/black"
             android:textSize="@dimen/text_size_18" />
     </LinearLayout>
 </FrameLayout>

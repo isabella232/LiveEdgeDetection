@@ -1,0 +1,79 @@
+from init.gradle settingsEvaluated settings 'LiveEdgeDetection'
+from init.gradle allprojects root project 'LiveEdgeDetection'
+from init.gradle allprojects project ':app'
+from init.gradle allprojects project ':liveedgedetection'
+from init.gradle allprojects project ':openCVLibrary343'
+AfterEvaluate: [BintrayJCenter, Google, MavenLocal, maven, maven2]
+AfterEvaluate: [BintrayJCenter, Google, MavenLocal, MavenLocal2, maven, maven2, maven3, maven4, maven5]
+WARNING [Project: :liveedgedetection] Support for not packaging BuildConfig is deprecated.
+AfterEvaluate: [BintrayJCenter, Google, MavenLocal, MavenLocal2, maven, maven2, maven3, maven4]
+AfterEvaluate: [BintrayJCenter, Google, MavenLocal, MavenLocal2, maven, maven2, maven3, maven4]
+:openCVLibrary343:preBuild UP-TO-DATE
+:openCVLibrary343:preDebugBuild UP-TO-DATE
+:openCVLibrary343:compileDebugAidl UP-TO-DATE
+:openCVLibrary343:compileDebugRenderscript UP-TO-DATE
+:openCVLibrary343:checkDebugManifest UP-TO-DATE
+:openCVLibrary343:generateDebugBuildConfig UP-TO-DATE
+:openCVLibrary343:generateDebugResValues UP-TO-DATE
+:openCVLibrary343:generateDebugResources UP-TO-DATE
+:openCVLibrary343:packageDebugResources UP-TO-DATE
+:openCVLibrary343:platformAttrExtractor UP-TO-DATE
+:openCVLibrary343:processDebugManifest UP-TO-DATE
+:openCVLibrary343:generateDebugRFile UP-TO-DATE
+:openCVLibrary343:prepareLintJar UP-TO-DATE
+:openCVLibrary343:generateDebugSources UP-TO-DATE
+:openCVLibrary343:javaPreCompileDebug UP-TO-DATE
+:openCVLibrary343:compileDebugJavaWithJavac UP-TO-DATE
+:openCVLibrary343:extractDebugAnnotations UP-TO-DATE
+:openCVLibrary343:mergeDebugConsumerProguardFiles UP-TO-DATE
+:openCVLibrary343:mergeDebugShaders UP-TO-DATE
+:openCVLibrary343:compileDebugShaders UP-TO-DATE
+:openCVLibrary343:generateDebugAssets UP-TO-DATE
+:openCVLibrary343:packageDebugAssets UP-TO-DATE
+:openCVLibrary343:packageDebugRenderscript NO-SOURCE
+:openCVLibrary343:processDebugJavaRes NO-SOURCE
+:openCVLibrary343:transformResourcesWithMergeJavaResForDebug UP-TO-DATE
+:openCVLibrary343:transformClassesAndResourcesWithSyncLibJarsForDebug UP-TO-DATE
+:openCVLibrary343:compileDebugNdk NO-SOURCE
+:openCVLibrary343:mergeDebugJniLibFolders UP-TO-DATE
+:openCVLibrary343:transformNativeLibsWithMergeJniLibsForDebug UP-TO-DATE
+:openCVLibrary343:transformNativeLibsWithStripDebugSymbolForDebug UP-TO-DATE
+:openCVLibrary343:transformNativeLibsWithSyncJniLibsForDebug UP-TO-DATE
+:openCVLibrary343:bundleDebug UP-TO-DATE
+:openCVLibrary343:compileDebugSources UP-TO-DATE
+:openCVLibrary343:assembleDebug UP-TO-DATE
+:openCVLibrary343:extractProguardFiles UP-TO-DATE
+:openCVLibrary343:preReleaseBuild UP-TO-DATE
+:openCVLibrary343:compileReleaseAidl UP-TO-DATE
+:openCVLibrary343:compileReleaseRenderscript UP-TO-DATE
+:openCVLibrary343:checkReleaseManifest UP-TO-DATE
+:openCVLibrary343:generateReleaseBuildConfig UP-TO-DATE
+:openCVLibrary343:generateReleaseResValues UP-TO-DATE
+:openCVLibrary343:generateReleaseResources UP-TO-DATE
+:openCVLibrary343:packageReleaseResources UP-TO-DATE
+:openCVLibrary343:processReleaseManifest UP-TO-DATE
+:openCVLibrary343:generateReleaseRFile UP-TO-DATE
+:openCVLibrary343:generateReleaseSources UP-TO-DATE
+:openCVLibrary343:javaPreCompileRelease UP-TO-DATE
+:openCVLibrary343:compileReleaseJavaWithJavac UP-TO-DATE
+:openCVLibrary343:extractReleaseAnnotations UP-TO-DATE
+:openCVLibrary343:mergeReleaseConsumerProguardFiles UP-TO-DATE
+:openCVLibrary343:mergeReleaseShaders UP-TO-DATE
+:openCVLibrary343:compileReleaseShaders UP-TO-DATE
+:openCVLibrary343:generateReleaseAssets UP-TO-DATE
+:openCVLibrary343:packageReleaseAssets UP-TO-DATE
+:openCVLibrary343:packageReleaseRenderscript NO-SOURCE
+:openCVLibrary343:processReleaseJavaRes NO-SOURCE
+:openCVLibrary343:transformResourcesWithMergeJavaResForRelease UP-TO-DATE
+:openCVLibrary343:transformClassesAndResourcesWithProguardForRelease
+ProGuard, version 5.3.3
+Reading input...
+Reading program directory [/home/francesco/Development/LiveEdgeDetection/openCVLibrary343/build/intermediates/classes/release] (filtered)
+Reading program jar [/home/francesco/Development/LiveEdgeDetection/openCVLibrary343/build/intermediates/transforms/mergeJavaRes/release/0.jar] (filtered)
+Reading library jar [/home/francesco/Android/Sdk/platforms/android-30/android.jar]
+Reading library jar [/home/francesco/Android/Sdk/platforms/android-30/optional/org.apache.http.legacy.jar]
+Reading library jar [/home/francesco/Android/Sdk/platforms/android-30/optional/android.car.jar]
+Warning: Exception while processing task java.io.IOException: Can't read [/home/francesco/Android/Sdk/platforms/android-30/optional/android.car.jar] (Can't process class [android/car/Car$CarServiceLifecycleListener.class] (Unsupported class version number [53.0] (maximum 52.0, Java 1.8)))
+Thread(Tasks limiter_2): destruction
+:openCVLibrary343:transformClassesAndResourcesWithProguardForRelease FAILED
+42 actionable tasks: 1 executed, 41 up-to-date

@@ -40,7 +40,6 @@ import com.adityaarora.liveedgedetection.enums.ScanHint;
 import com.adityaarora.liveedgedetection.interfaces.IScanner;
 import com.adityaarora.liveedgedetection.util.ScanUtils;
 import com.adityaarora.liveedgedetection.view.LimitedArea;
-import com.adityaarora.liveedgedetection.view.PolygonPoints;
 import com.adityaarora.liveedgedetection.view.PolygonView;
 import com.adityaarora.liveedgedetection.view.ProgressDialogFragment;
 import com.adityaarora.liveedgedetection.view.Quadrilateral;
@@ -58,7 +57,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static android.view.View.GONE;
-import static com.adityaarora.liveedgedetection.constants.ScanConstants.MIME_TYPES;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.PDF_EXT;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.SHOW_MANUAL_MODE_INTERVAL;
 import static com.adityaarora.liveedgedetection.constants.ScanConstants.START_LIVE_DETECTION;
@@ -136,8 +134,6 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
         View cropAcceptBtn = findViewById(R.id.crop_accept_btn);
         View cropRejectBtn = findViewById(R.id.crop_reject_btn);
-        ImageButton openFileBtn = findViewById(R.id.open_file_btn);
-        openFileBtn.setOnClickListener(onClickListener);
         ImageButton backBtn = findViewById(R.id.back_btn);
         backBtn.setOnClickListener(onClickListener);
 
@@ -162,7 +158,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         checkCameraPermissions();
     }
 
-    private Runnable runnable = new Runnable() {
+    private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
             switchModeBtn.setVisibility(View.VISIBLE);
@@ -188,23 +184,10 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         handler.postDelayed(runnable, SHOW_MANUAL_MODE_INTERVAL);
     }
 
-    private View.OnClickListener onClickListener = new View.OnClickListener() {
+    private final View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            if (view.getId() == R.id.open_file_btn) {
-                mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.FROM_FILESYSTEM);
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("*/*");
-                intent.putExtra(Intent.EXTRA_MIME_TYPES, MIME_TYPES);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                try {
-                    startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), SELECTED_FILE_CODE);
-                }
-                catch (Exception ex) {
-                    Log.e(TAG, ex.toString(), ex);
-                }
-            }
-            else if (view.getId() == R.id.capture_btn) {
+            if (view.getId() == R.id.capture_btn) {
                 mImageSurfaceView.autoCapture(CAPTURING_IMAGE);
             }
             else if (view.getId() == R.id.switch_mode) {
@@ -235,9 +218,12 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 Uri selectedFile = data.getData();
                 ContentResolver cR = getApplicationContext().getContentResolver();
                 MimeTypeMap mime = MimeTypeMap.getSingleton();
-                String type = mime.getExtensionFromMimeType(cR.getType(selectedFile));
+                String type = null;
+                if (selectedFile != null) {
+                    type = mime.getExtensionFromMimeType(cR.getType(selectedFile));
+                }
                 Log.i(TAG, "Caricato file da filesystem di tipo: " + type);
-                if (type.equals(PDF_EXT)) {
+                if (type != null && type.equals(PDF_EXT)) {
                     ScanUtils.saveToInternalMemory(getApplicationContext(), selectedFile, this);
                 }
                 else {
@@ -283,12 +269,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST:
-                onRequestCamera(grantResults);
-                break;
-            default:
-                break;
+        if (requestCode == MY_PERMISSIONS_REQUEST) {
+            onRequestCamera(grantResults);
         }
     }
 
@@ -320,31 +302,31 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         switch (scanHint) {
             case MOVE_CLOSER:
                 captureHintText.setText(getResources().getString(R.string.move_closer));
-                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_red));
+//                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_red));
                 break;
             case ROTATE:
                 captureHintText.setText(getResources().getString(R.string.rotate));
-                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_red));
+//                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_red));
                 break;
             case MOVE_AWAY:
                 captureHintText.setText(getResources().getString(R.string.move_away));
-                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_red));
+//                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_red));
                 break;
             case ADJUST_ANGLE:
                 captureHintText.setText(getResources().getString(R.string.adjust_angle));
-                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_red));
+//                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_red));
                 break;
             case FIND_RECT:
                 captureHintText.setText(getResources().getString(R.string.finding_rect));
-                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_white));
+//                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_white));
                 break;
             case CAPTURING_IMAGE:
                 captureHintText.setText(getResources().getString(R.string.hold_still));
-                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_green));
+//                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_green));
                 break;
             case MANUAL_MODE:
                 captureHintText.setText(getResources().getString(R.string.manual_mode));
-                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_green));
+//                captureHintLayout.setBackground(getResources().getDrawable(R.drawable.hint_green));
                 break;
             case NO_MESSAGE:
                 captureHintLayout.setVisibility(GONE);

@@ -323,11 +323,11 @@ public class ScanUtils {
             // Dilatazione per sfondo scuro
             int iterations = 1;
 
-            double avgCorner = getAvgCorner(mat);
-            if (avgCorner >= BACKGROUND_THRESHOLD) {
-                // Dilatazione per sfondo chiaro
-                iterations = 23;
-            }
+//            double avgCorner = getAvgCorner(mat);
+//            if (avgCorner >= BACKGROUND_THRESHOLD) {
+//                // Dilatazione per sfondo chiaro
+//                iterations = 23;
+//            }
 
             Imgproc.bilateralFilter(mGrayMat, dst, 11, 11, 11);
             Imgproc.adaptiveThreshold(dst, dst, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 115, 4);
