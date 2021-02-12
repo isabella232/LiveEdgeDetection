@@ -11,4 +11,5 @@
     <string name="manual_mode">Monaul mode activated</string>
     <string name="capturing">Capturing image</string>
     <string name="rotate">Wheel smartphone</string>
+    <string name="saved_images">%d photos</string>
 </resources>

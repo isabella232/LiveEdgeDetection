@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.MimeTypeMap;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -54,6 +55,7 @@ import org.opencv.imgproc.Imgproc;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static android.view.View.GONE;
@@ -88,8 +90,10 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private ImageButton captureBtn;
     private ImageButton switchModeBtn;
     private ImageButton switchFlashBtn;
+    private Button finishBtn;
     private LimitedArea limitedArea;
     private Handler handler = new Handler(Looper.getMainLooper());
+    private ArrayList<String> imagePaths = new ArrayList<>();
 
     private static ProgressDialogFragment progressDialogFragment;
 
@@ -130,6 +134,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         switchModeBtn = findViewById(R.id.switch_mode);
         switchModeBtn.setOnClickListener(onClickListener);
         switchFlashBtn = findViewById(R.id.flash);
+        finishBtn = findViewById(R.id.finish_btn);
         switchFlashBtn.setOnClickListener(onClickListener);
 
         View cropAcceptBtn = findViewById(R.id.crop_accept_btn);
@@ -138,24 +143,30 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         backBtn.setOnClickListener(onClickListener);
 
         cropAcceptBtn.setOnClickListener(this);
+        finishBtn.setOnClickListener(this);
         cropRejectBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    TransitionManager.beginDelayedTransition(containerScan);
-                }
-                cropLayout.setVisibility(View.GONE);
-                if (mImageSurfaceView.getAcquisitionMode() == ScanSurfaceView.AcquisitionMode.FROM_FILESYSTEM) {
-                    mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
-                    cameraPreviewLayout.addView(mImageSurfaceView);
-                }
-                else {
-                    mImageSurfaceView.setPreviewCallback();
-                }
-                goneManualMode();
+                reopenCamera();
             }
         });
         checkCameraPermissions();
+    }
+
+    private void reopenCamera() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            TransitionManager.beginDelayedTransition(containerScan);
+        }
+        if (imagePaths.size() > 0) finishBtn.setVisibility(View.VISIBLE);
+        cropLayout.setVisibility(View.GONE);
+        if (mImageSurfaceView.getAcquisitionMode() == ScanSurfaceView.AcquisitionMode.FROM_FILESYSTEM) {
+            mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
+            cameraPreviewLayout.addView(mImageSurfaceView);
+        }
+        else {
+            mImageSurfaceView.setPreviewCallback();
+        }
+        goneManualMode();
     }
 
     private final Runnable runnable = new Runnable() {
@@ -388,6 +399,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
                 TransitionManager.beginDelayedTransition(containerScan);
             cropLayout.setVisibility(View.VISIBLE);
+            finishBtn.setVisibility(GONE);
 
             cropImageView.setImageBitmap(copyBitmap);
             cropImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
@@ -414,31 +426,37 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
     @Override
     public void onClick(View view) {
-        Map<Integer, PointF> points = polygonView.getPoints();
+        if (view.getId() == R.id.crop_accept_btn) {
+            Map<Integer, PointF> points = polygonView.getPoints();
 
-        Bitmap croppedBitmap;
+            Bitmap croppedBitmap;
 
-        if (ScanUtils.isScanPointsValid(points)) {
-            Point point1 = new Point(points.get(0).x, points.get(0).y);
-            Point point2 = new Point(points.get(1).x, points.get(1).y);
-            Point point3 = new Point(points.get(2).x, points.get(2).y);
-            Point point4 = new Point(points.get(3).x, points.get(3).y);
-            croppedBitmap = ScanUtils.enhanceReceipt(copyBitmap, point1, point2, point3, point4);
+            if (ScanUtils.isScanPointsValid(points)) {
+                Point point1 = new Point(points.get(0).x, points.get(0).y);
+                Point point2 = new Point(points.get(1).x, points.get(1).y);
+                Point point3 = new Point(points.get(2).x, points.get(2).y);
+                Point point4 = new Point(points.get(3).x, points.get(3).y);
+                croppedBitmap = ScanUtils.enhanceReceipt(copyBitmap, point1, point2, point3, point4);
+            }
+            else {
+                croppedBitmap = copyBitmap;
+            }
+
+            ScanUtils.saveToInternalMemory(getApplicationContext(), croppedBitmap, this);
         }
-        else {
-            croppedBitmap = copyBitmap;
+        else if (view.getId() == R.id.finish_btn) {
+            setResult(Activity.RESULT_OK, new Intent()
+                .putStringArrayListExtra(ScanConstants.PATH_RESULT, imagePaths)
+                .putExtra(ScanConstants.ACQUISITION_MODE, mImageSurfaceView.getAcquisitionMode().toString()));
+            finish();
         }
-
-        ScanUtils.saveToInternalMemory(getApplicationContext(), croppedBitmap, this);
     }
 
     @Override
     public void onCompleted(String[] paths) {
-        setResult(Activity.RESULT_OK, new Intent()
-                .putExtra(ScanConstants.PATH_RESULT, paths[0])
-                .putExtra(ScanConstants.TYPE_RESULT, paths[1])
-                .putExtra(ScanConstants.ACQUISITION_MODE, mImageSurfaceView.getAcquisitionMode().toString()));
-        finish();
+        imagePaths.add(paths[0]);
+        finishBtn.setText(getString(R.string.saved_images, imagePaths.size()));
+        reopenCamera();
     }
 
     @Override
