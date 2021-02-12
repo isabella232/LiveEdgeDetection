@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -40,7 +41,6 @@ import com.adityaarora.liveedgedetection.enums.ScanHint;
 import com.adityaarora.liveedgedetection.interfaces.IScanner;
 import com.adityaarora.liveedgedetection.util.ScanUtils;
 import com.adityaarora.liveedgedetection.view.LimitedArea;
-import com.adityaarora.liveedgedetection.view.PolygonPoints;
 import com.adityaarora.liveedgedetection.view.PolygonView;
 import com.adityaarora.liveedgedetection.view.ProgressDialogFragment;
 import com.adityaarora.liveedgedetection.view.Quadrilateral;
@@ -77,12 +77,15 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private static final int SELECTED_FILE_CODE = 102;
     private static final String mOpenCvLibrary = "opencv_java3";
 
+    private final Handler handler = new Handler(Looper.getMainLooper());
+
+    private static ProgressDialogFragment progressDialogFragment;
+
     private ViewGroup containerScan;
     private FrameLayout cameraPreviewLayout;
     private ScanSurfaceView mImageSurfaceView;
     private TextView captureHintText;
     private LinearLayout captureHintLayout;
-
     private PolygonView polygonView;
     private ImageView cropImageView;
     private Bitmap copyBitmap;
@@ -91,9 +94,6 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private ImageButton switchModeBtn;
     private ImageButton switchFlashBtn;
     private LimitedArea limitedArea;
-    private Handler handler = new Handler(Looper.getMainLooper());
-
-    private static ProgressDialogFragment progressDialogFragment;
 
     private boolean isPermissionNotGranted;
     private boolean flashIsEnable = false;
@@ -127,42 +127,43 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         cropImageView = findViewById(R.id.crop_image_view);
         cropLayout = findViewById(R.id.crop_layout);
         captureBtn = findViewById(R.id.capture_btn);
-        captureBtn.setOnClickListener(onClickListener);
         limitedArea = findViewById(R.id.limited_area);
         switchModeBtn = findViewById(R.id.switch_mode);
-        switchModeBtn.setOnClickListener(onClickListener);
         switchFlashBtn = findViewById(R.id.flash);
+
+        captureBtn.setOnClickListener(onClickListener);
+        switchModeBtn.setOnClickListener(onClickListener);
         switchFlashBtn.setOnClickListener(onClickListener);
 
         View cropAcceptBtn = findViewById(R.id.crop_accept_btn);
         View cropRejectBtn = findViewById(R.id.crop_reject_btn);
         ImageButton openFileBtn = findViewById(R.id.open_file_btn);
-        openFileBtn.setOnClickListener(onClickListener);
         ImageButton backBtn = findViewById(R.id.back_btn);
-        backBtn.setOnClickListener(onClickListener);
 
+        openFileBtn.setOnClickListener(onClickListener);
+        backBtn.setOnClickListener(onClickListener);
+        cropRejectBtn.setOnClickListener(v -> openCameraView());
         cropAcceptBtn.setOnClickListener(this);
-        cropRejectBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    TransitionManager.beginDelayedTransition(containerScan);
-                }
-                cropLayout.setVisibility(View.GONE);
-                if (mImageSurfaceView.getAcquisitionMode() == ScanSurfaceView.AcquisitionMode.FROM_FILESYSTEM) {
-                    mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
-                    cameraPreviewLayout.addView(mImageSurfaceView);
-                }
-                else {
-                    mImageSurfaceView.setPreviewCallback();
-                }
-                goneManualMode();
-            }
-        });
+
         checkCameraPermissions();
     }
 
-    private Runnable runnable = new Runnable() {
+    private void openCameraView() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            TransitionManager.beginDelayedTransition(containerScan);
+        }
+        cropLayout.setVisibility(View.GONE);
+        if (mImageSurfaceView.getAcquisitionMode() == ScanSurfaceView.AcquisitionMode.FROM_FILESYSTEM) {
+            mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
+            cameraPreviewLayout.addView(mImageSurfaceView);
+        }
+        else {
+            mImageSurfaceView.setPreviewCallback();
+        }
+        goneManualMode();
+    }
+
+    private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
             switchModeBtn.setVisibility(View.VISIBLE);
@@ -188,7 +189,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         handler.postDelayed(runnable, SHOW_MANUAL_MODE_INTERVAL);
     }
 
-    private View.OnClickListener onClickListener = new View.OnClickListener() {
+    private final View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             if (view.getId() == R.id.open_file_btn) {
@@ -282,31 +283,19 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST:
-                onRequestCamera(grantResults);
-                break;
-            default:
-                break;
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == MY_PERMISSIONS_REQUEST) {
+            onRequestCamera(grantResults);
         }
     }
 
     private void onRequestCamera(int[] grantResults) {
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
-                            cameraPreviewLayout.addView(mImageSurfaceView);
-                        }
-                    });
-                }
-            }, 500);
-
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+            new Handler().postDelayed(() -> runOnUiThread(() -> {
+                mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
+                cameraPreviewLayout.addView(mImageSurfaceView);
+            }), 500);
         }
         else {
             Toast.makeText(this, getString(R.string.camera_activity_permission_denied_toast), Toast.LENGTH_SHORT).show();
@@ -400,7 +389,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
             polygonView.setPoints(pointFs);
             int padding = (int) getResources().getDimension(R.dimen.scan_padding);
-            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(copyBitmap.getWidth() + 2 * padding, copyBitmap.getHeight() + 2 * padding);
+            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+                    copyBitmap.getWidth() + 2 * padding, copyBitmap.getHeight() + 2 * padding);
             layoutParams.gravity = Gravity.CENTER;
             polygonView.setLayoutParams(layoutParams);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
