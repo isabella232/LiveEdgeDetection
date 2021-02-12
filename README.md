@@ -58,7 +58,7 @@ Bitmap baseBitmap = ScanUtils.decodeBitmapFromFile(filePath, ScanConstants.IMAGE
 ```
 3. Display the image using **TouchImageView**
 ```
-<com.adityaarora.liveedgedetection.view.TouchImageView
+<mobimentum.liveedgedetection.view.TouchImageView
         android:id="@+id/scanned_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
