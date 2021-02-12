@@ -51,23 +51,25 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     private CountDownTimer autoCaptureTimer;
     private Camera.Size previewSize;
     private AcquisitionMode acquisitionMode = AcquisitionMode.DETECTION_MODE;
-    private HandlerThread handlerThread = new HandlerThread("processing");
-    private Handler processingThread;
     private Mat mat;
     private Quadrilateral largestQuad;
+
     private int vWidth = 0;
     private int vHeight = 0;
     private int secondsLeft;
-    private final IScanner iScanner;
-    private final Context context;
-    private final ScanCanvasView scanCanvasView;
+
     private boolean isCapturing = false;
     private boolean isAutoCaptureScheduled;
+
+    private final Context context;
+    private final ScanCanvasView scanCanvasView;
+    private final IScanner iScanner;
+    private final Handler processingThread;
 
     public enum AcquisitionMode {
         FROM_FILESYSTEM,
         MANUAL_MODE,
-        DETECTION_MODE
+        DETECTION_MODE;
     }
 
     public ScanSurfaceView(Context context, IScanner iScanner) {
@@ -80,7 +82,8 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         SurfaceHolder surfaceHolder = mSurfaceView.getHolder();
         surfaceHolder.addCallback(this);
         this.iScanner = iScanner;
-        this.handlerThread.start();
+        HandlerThread handlerThread = new HandlerThread("processing");
+        handlerThread.start();
         this.processingThread = new Handler(handlerThread.getLooper());
     }
 
@@ -214,19 +217,16 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                     (getAcquisitionMode() != AcquisitionMode.FROM_FILESYSTEM) && (System.currentTimeMillis() - lastCall) > INTERVAL_FRAME) {
                 try {
                     final Camera.Size pictureSize = camera.getParameters().getPreviewSize();
-                    processingThread.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Mat yuv = new Mat(new Size(pictureSize.width, pictureSize.height * 1.5), CV_8UC1);
-                            yuv.put(0, 0, data);
+                    processingThread.post(() -> {
+                        Mat yuv = new Mat(new Size(pictureSize.width, pictureSize.height * 1.5), CV_8UC1);
+                        yuv.put(0, 0, data);
 
-                            mat = new Mat(new Size(pictureSize.width, pictureSize.height), CvType.CV_8UC4);
-                            if (!mat.empty()) {
-                                Imgproc.cvtColor(yuv, mat, Imgproc.COLOR_YUV2BGR_NV21, 4);
-                                yuv.release();
+                        mat = new Mat(new Size(pictureSize.width, pictureSize.height), CvType.CV_8UC4);
+                        if (!mat.empty()) {
+                            Imgproc.cvtColor(yuv, mat, Imgproc.COLOR_YUV2BGR_NV21, 4);
+                            yuv.release();
 
-                                largestQuad = ScanUtils.detectLargestQuadrilateral(mat);
-                            }
+                            largestQuad = ScanUtils.detectLargestQuadrilateral(mat);
                         }
                     });
                     clearAndInvalidateCanvas();
@@ -456,12 +456,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
 
             iScanner.onPictureClicked(bitmap);
-            postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    isCapturing = false;
-                }
-            }, 3000);
+            postDelayed(() -> isCapturing = false, 3000);
         }
     };
 

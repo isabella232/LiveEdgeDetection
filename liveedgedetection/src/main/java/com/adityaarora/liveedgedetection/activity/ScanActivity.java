@@ -55,7 +55,6 @@ import org.opencv.imgproc.Imgproc;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static android.view.View.GONE;
@@ -77,12 +76,13 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private static final int SELECTED_FILE_CODE = 102;
     private static final String mOpenCvLibrary = "opencv_java3";
 
+    private static ProgressDialogFragment progressDialogFragment;
+
     private ViewGroup containerScan;
     private FrameLayout cameraPreviewLayout;
-    private ScanSurfaceView mImageSurfaceView;
+    private ScanSurfaceView imageSurfaceView;
     private TextView captureHintText;
     private LinearLayout captureHintLayout;
-
     private PolygonView polygonView;
     private ImageView cropImageView;
     private Bitmap copyBitmap;
@@ -92,10 +92,9 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private ImageButton switchFlashBtn;
     private Button finishBtn;
     private LimitedArea limitedArea;
-    private Handler handler = new Handler(Looper.getMainLooper());
-    private ArrayList<String> imagePaths = new ArrayList<>();
 
-    private static ProgressDialogFragment progressDialogFragment;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final ArrayList<String> imagePaths = new ArrayList<>();
 
     private boolean isPermissionNotGranted;
     private boolean flashIsEnable = false;
@@ -129,13 +128,15 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         cropImageView = findViewById(R.id.crop_image_view);
         cropLayout = findViewById(R.id.crop_layout);
         captureBtn = findViewById(R.id.capture_btn);
-        captureBtn.setOnClickListener(onClickListener);
         limitedArea = findViewById(R.id.limited_area);
         switchModeBtn = findViewById(R.id.switch_mode);
-        switchModeBtn.setOnClickListener(onClickListener);
         switchFlashBtn = findViewById(R.id.flash);
         finishBtn = findViewById(R.id.finish_btn);
+
+        captureBtn.setOnClickListener(onClickListener);
+        switchModeBtn.setOnClickListener(onClickListener);
         switchFlashBtn.setOnClickListener(onClickListener);
+        finishBtn.setOnClickListener(this);
 
         View cropAcceptBtn = findViewById(R.id.crop_accept_btn);
         View cropRejectBtn = findViewById(R.id.crop_reject_btn);
@@ -143,28 +144,23 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         backBtn.setOnClickListener(onClickListener);
 
         cropAcceptBtn.setOnClickListener(this);
-        finishBtn.setOnClickListener(this);
-        cropRejectBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                reopenCamera();
-            }
-        });
+        cropRejectBtn.setOnClickListener(v -> openCameraView());
+
         checkCameraPermissions();
     }
 
-    private void reopenCamera() {
+    private void openCameraView() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             TransitionManager.beginDelayedTransition(containerScan);
         }
         if (imagePaths.size() > 0) finishBtn.setVisibility(View.VISIBLE);
         cropLayout.setVisibility(View.GONE);
-        if (mImageSurfaceView.getAcquisitionMode() == ScanSurfaceView.AcquisitionMode.FROM_FILESYSTEM) {
-            mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
-            cameraPreviewLayout.addView(mImageSurfaceView);
+        if (imageSurfaceView.getAcquisitionMode() == ScanSurfaceView.AcquisitionMode.FROM_FILESYSTEM) {
+            imageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
+            cameraPreviewLayout.addView(imageSurfaceView);
         }
         else {
-            mImageSurfaceView.setPreviewCallback();
+            imageSurfaceView.setPreviewCallback();
         }
         goneManualMode();
     }
@@ -177,8 +173,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     };
 
     private void showManualMode() {
-        if (mImageSurfaceView != null) {
-            mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.MANUAL_MODE);
+        if (imageSurfaceView != null) {
+            imageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.MANUAL_MODE);
         }
         captureBtn.setVisibility(View.VISIBLE);
         limitedArea.setVisibility(View.VISIBLE);
@@ -186,8 +182,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     }
 
     private void goneManualMode() {
-        if (mImageSurfaceView != null) {
-            mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.DETECTION_MODE);
+        if (imageSurfaceView != null) {
+            imageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.DETECTION_MODE);
         }
         captureBtn.setVisibility(View.GONE);
         limitedArea.setVisibility(View.GONE);
@@ -199,10 +195,10 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         @Override
         public void onClick(View view) {
             if (view.getId() == R.id.capture_btn) {
-                mImageSurfaceView.autoCapture(CAPTURING_IMAGE);
+                imageSurfaceView.autoCapture(CAPTURING_IMAGE);
             }
             else if (view.getId() == R.id.switch_mode) {
-                if (mImageSurfaceView.getAcquisitionMode() == ScanSurfaceView.AcquisitionMode.MANUAL_MODE) {
+                if (imageSurfaceView.getAcquisitionMode() == ScanSurfaceView.AcquisitionMode.MANUAL_MODE) {
                     goneManualMode();
                 }
                 else {
@@ -212,7 +208,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             else if (view.getId() == R.id.flash) {
                 flashIsEnable = !flashIsEnable;
                 switchFlashBtn.setImageResource(flashIsEnable ? R.drawable.ic_flash_off : R.drawable.ic_flash);
-                mImageSurfaceView.setFlash(flashIsEnable);
+                imageSurfaceView.setFlash(flashIsEnable);
             }
             else if (view.getId() == R.id.back_btn) {
                 finish();
@@ -224,7 +220,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == SELECTED_FILE_CODE && data != null) {
-            mImageSurfaceView.surfaceDestroyed();
+            imageSurfaceView.surfaceDestroyed();
             try {
                 Uri selectedFile = data.getData();
                 ContentResolver cR = getApplicationContext().getContentResolver();
@@ -254,13 +250,14 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             }
         }
         else {
-            mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.DETECTION_MODE);
+            imageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.DETECTION_MODE);
         }
     }
 
     private void checkCameraPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                || ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             isPermissionNotGranted = true;
             ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.CAMERA,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE }, MY_PERMISSIONS_REQUEST);
@@ -268,8 +265,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         else {
             if (!isPermissionNotGranted) {
                 Log.d(TAG, "checkCameraPermissions() called");
-                mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, this);
-                cameraPreviewLayout.addView(mImageSurfaceView);
+                imageSurfaceView = new ScanSurfaceView(ScanActivity.this, this);
+                cameraPreviewLayout.addView(imageSurfaceView);
             }
             else {
                 isPermissionNotGranted = false;
@@ -286,19 +283,12 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     }
 
     private void onRequestCamera(int[] grantResults) {
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
-                            cameraPreviewLayout.addView(mImageSurfaceView);
-                        }
-                    });
-                }
-            }, 500);
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+            new Handler().postDelayed(() -> runOnUiThread(() -> {
+                imageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
+                cameraPreviewLayout.addView(imageSurfaceView);
+            }), 500);
 
         }
         else {
@@ -362,7 +352,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
             ArrayList<PointF> points;
             Map<Integer, PointF> pointFs = new HashMap<>();
             Quadrilateral quad = ScanUtils.detectLargestQuadrilateral(originalMat);
-            if (mImageSurfaceView.getAcquisitionMode() != ScanSurfaceView.AcquisitionMode.MANUAL_MODE) {
+            if (imageSurfaceView.getAcquisitionMode() != ScanSurfaceView.AcquisitionMode.MANUAL_MODE) {
                 if (null != quad) {
                     double resultArea = Math.abs(Imgproc.contourArea(quad.contour));
                     double previewArea = originalMat.rows() * originalMat.cols();
@@ -393,7 +383,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
 
             polygonView.setPoints(pointFs);
             int padding = (int) getResources().getDimension(R.dimen.scan_padding);
-            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(copyBitmap.getWidth() + 2 * padding, copyBitmap.getHeight() + 2 * padding);
+            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+                    copyBitmap.getWidth() + 2 * padding, copyBitmap.getHeight() + 2 * padding);
             layoutParams.gravity = Gravity.CENTER;
             polygonView.setLayoutParams(layoutParams);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
@@ -447,7 +438,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         else if (view.getId() == R.id.finish_btn) {
             setResult(Activity.RESULT_OK, new Intent()
                 .putStringArrayListExtra(ScanConstants.PATH_RESULT, imagePaths)
-                .putExtra(ScanConstants.ACQUISITION_MODE, mImageSurfaceView.getAcquisitionMode().toString()));
+                .putExtra(ScanConstants.ACQUISITION_MODE, imageSurfaceView.getAcquisitionMode().toString()));
             finish();
         }
     }
@@ -456,7 +447,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     public void onCompleted(String[] paths) {
         imagePaths.add(paths[0]);
         finishBtn.setText(getString(R.string.saved_images, imagePaths.size()));
-        reopenCamera();
+        openCameraView();
     }
 
     @Override
