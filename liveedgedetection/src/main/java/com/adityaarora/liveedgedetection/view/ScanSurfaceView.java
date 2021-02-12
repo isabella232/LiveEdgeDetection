@@ -46,21 +46,23 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
     private static final String TAG = ScanSurfaceView.class.getSimpleName();
 
-    public SurfaceView mSurfaceView;
+    public SurfaceView surfaceView;
     private Camera camera;
     private CountDownTimer autoCaptureTimer;
     private Camera.Size previewSize;
     private AcquisitionMode acquisitionMode = AcquisitionMode.DETECTION_MODE;
-    private HandlerThread handlerThread = new HandlerThread("processing");
-    private Handler processingThread;
     private Mat mat;
     private Quadrilateral largestQuad;
+
     private int vWidth = 0;
     private int vHeight = 0;
     private int secondsLeft;
+
     private final IScanner iScanner;
     private final Context context;
     private final ScanCanvasView scanCanvasView;
+    private final Handler processingThread;
+
     private boolean isCapturing = false;
     private boolean isAutoCaptureScheduled;
 
@@ -72,15 +74,16 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
     public ScanSurfaceView(Context context, IScanner iScanner) {
         super(context);
-        mSurfaceView = new SurfaceView(context);
-        addView(mSurfaceView);
+        surfaceView = new SurfaceView(context);
+        addView(surfaceView);
         this.context = context;
         this.scanCanvasView = new ScanCanvasView(context);
         addView(scanCanvasView);
-        SurfaceHolder surfaceHolder = mSurfaceView.getHolder();
+        SurfaceHolder surfaceHolder = surfaceView.getHolder();
         surfaceHolder.addCallback(this);
         this.iScanner = iScanner;
-        this.handlerThread.start();
+        HandlerThread handlerThread = new HandlerThread("processing");
+        handlerThread.start();
         this.processingThread = new Handler(handlerThread.getLooper());
     }
 
@@ -190,12 +193,8 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
     private void stopPreviewAndFreeCamera() {
         if (camera != null) {
-            // Call stopPreview() to stop updating the preview surface.
             camera.stopPreview();
             camera.setPreviewCallback(null);
-            // Important: Call release() to release the camera for use by other
-            // applications. Applications should release the camera immediately
-            // during onPause() and re-open() it during onResume()).
             camera.release();
             camera = null;
         }
@@ -280,9 +279,8 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         double bottomWidth = points[2].y - points[1].y;
         if (bottomWidth > resultWidth) resultWidth = bottomWidth;
 
-        ImageDetectionProperties imgDetectionPropsObj
-                = new ImageDetectionProperties(previewWidth, previewHeight, resultWidth, resultHeight,
-                previewArea, area, points[0], points[1], points[2], points[3]);
+        ImageDetectionProperties imgDetectionPropsObj = new ImageDetectionProperties(previewWidth,
+                previewHeight, resultWidth, resultHeight, previewArea, area, points[0], points[1], points[2], points[3]);
 
         final ScanHint scanHint;
 
@@ -478,9 +476,6 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // We purposely disregard child measurements because act as a
-        // wrapper to a SurfaceView that centers the camera preview instead
-        // of stretching it.
         vWidth = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         vHeight = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(vWidth, vHeight);
@@ -533,7 +528,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
                 top = (height - scaledChildHeight) / 2;
                 left = 0;
             }
-            mSurfaceView.layout(left, top, nW, nH);
+            surfaceView.layout(left, top, nW, nH);
             scanCanvasView.layout(left, top, nW, nH);
 
             Log.d("layout", "left:" + left);

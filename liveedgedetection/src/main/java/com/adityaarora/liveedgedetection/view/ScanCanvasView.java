@@ -28,7 +28,7 @@ public class ScanCanvasView extends View {
         super(context, attrs, defStyle);
     }
 
-    public class ScanShape {
+    public static class ScanShape {
         private final Shape mShape;
         private final Paint mPaint;
         private final Paint mBorder;

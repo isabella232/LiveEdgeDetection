@@ -150,7 +150,8 @@ public class ScanUtils {
         if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             displayOrientation = (info.orientation + degrees) % 360;
             displayOrientation = (360 - displayOrientation) % 360;
-        } else {
+        }
+        else {
             displayOrientation = (info.orientation - degrees + 360) % 360;
         }
         return displayOrientation;
@@ -203,7 +204,8 @@ public class ScanUtils {
                     size.height = supportedSize.height;
                     bestDifference = difference;
                 }
-            } else if (difference < bestDifference + aspectTolerance) {
+            }
+            else if (difference < bestDifference + aspectTolerance) {
                 // same aspectRatio found (within tolerance)
                 if (width == 0 || height == 0) {
                     // set highest supported resolution below 2 Megapixel
@@ -211,7 +213,8 @@ public class ScanUtils {
                         size.width = supportedSize.width;
                         size.height = supportedSize.height;
                     }
-                } else {
+                }
+                else {
                     // check if this pictureSize closer to requested width and height
                     if (Math.abs(width * height - supportedSize.width * supportedSize.height) < Math.abs(width * height - size.width * size.height)) {
                         size.width = supportedSize.width;
@@ -220,7 +223,6 @@ public class ScanUtils {
                 }
             }
         }
-        Log.d(TAG, "CameraPreview optimalPictureSize " + size.width + 'x' + size.height);
         return size;
     }
 
@@ -265,8 +267,7 @@ public class ScanUtils {
 
 
     public static int configureCameraAngle(Activity activity) {
-        int angle;
-
+        int angle = 0;
         Display display = activity.getWindowManager().getDefaultDisplay();
         switch (display.getRotation()) {
             case Surface.ROTATION_90:
@@ -280,6 +281,8 @@ public class ScanUtils {
                 break;
             default:
                 angle = 90;
+                break;
+            case Surface.ROTATION_0:
                 break;
         }
 
@@ -802,7 +805,8 @@ public class ScanUtils {
             int finalHeight = maxHeight;
             if (ratioMax > 1) {
                 finalWidth = (int) ((float) maxHeight * ratioBitmap);
-            } else {
+            }
+            else {
                 finalHeight = (int) ((float) maxWidth / ratioBitmap);
             }
 

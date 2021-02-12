@@ -16,7 +16,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -76,10 +75,9 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private static final int MY_PERMISSIONS_REQUEST = 101;
     private static final int SELECTED_FILE_CODE = 102;
     private static final String mOpenCvLibrary = "opencv_java3";
+    private static ProgressDialogFragment progressDialogFragment;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-
-    private static ProgressDialogFragment progressDialogFragment;
 
     private ViewGroup containerScan;
     private FrameLayout cameraPreviewLayout;
@@ -196,7 +194,9 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 mImageSurfaceView.setAcquisitionMode(ScanSurfaceView.AcquisitionMode.FROM_FILESYSTEM);
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("*/*");
-                intent.putExtra(Intent.EXTRA_MIME_TYPES, MIME_TYPES);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    intent.putExtra(Intent.EXTRA_MIME_TYPES, MIME_TYPES);
+                }
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 try {
                     startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), SELECTED_FILE_CODE);
