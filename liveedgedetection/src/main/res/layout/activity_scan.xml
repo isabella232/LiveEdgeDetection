@@ -4,14 +4,14 @@
     android:id="@+id/container_scan"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.adityaarora.liveedgedetection.activity.ScanActivity">
+    tools:context="com.mobimentum.liveedgedetection.activity.ScanActivity">
 
     <FrameLayout
         android:id="@+id/camera_preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <com.adityaarora.liveedgedetection.view.LimitedArea
+    <com.mobimentum.liveedgedetection.view.LimitedArea
         android:id="@+id/limited_area"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -95,7 +95,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center" />
 
-        <com.adityaarora.liveedgedetection.view.PolygonView
+        <com.mobimentum.liveedgedetection.view.PolygonView
             android:id="@+id/polygon_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
